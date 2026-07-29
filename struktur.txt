@@ -1,0 +1,120 @@
+school-management-system/
+├── frontend/
+│   ├── .env.local
+│   ├── .env.production
+│   ├── next.config.js
+│   ├── tailwind.config.ts
+│   ├── tsconfig.json
+│   ├── package.json
+│   ├── public/
+│   │   ├── icons/
+│   │   ├── images/
+│   │   ├── manifest.json
+│   │   └── sw.js
+│   └── src/
+│       ├── app/
+│       │   ├── (auth)/
+│       │   │   ├── login/
+│       │   │   ├── register/
+│       │   │   └── forgot-password/
+│       │   ├── (public)/
+│       │   │   ├── page.tsx (Landing)
+│       │   │   ├── tentang/
+│       │   │   ├── berita/
+│       │   │   ├── pengumuman/
+│       │   │   ├── agenda/
+│       │   │   ├── galeri/
+│       │   │   ├── ppdb/
+│       │   │   ├── kontak/
+│       │   │   └── faq/
+│       │   ├── (dashboard)/
+│       │   │   ├── admin/
+│       │   │   │   ├── dashboard/
+│       │   │   │   ├── master/
+│       │   │   │   ├── berita/
+│       │   │   │   ├── ppdb/
+│       │   │   │   ├── keuangan/
+│       │   │   │   └── settings/
+│       │   │   ├── guru/
+│       │   │   ├── siswa/
+│       │   │   ├── kepsek/
+│       │   │   └── ortu/
+│       │   └── api/
+│       └── components/
+│           ├── ui/
+│           │   ├── Button/
+│           │   ├── Card/
+│           │   ├── Modal/
+│           │   ├── Table/
+│           │   ├── Form/
+│           │   └── Skeleton/
+│           ├── layout/
+│           │   ├── Header/
+│           │   ├── Footer/
+│           │   ├── Sidebar/
+│           │   └── Navbar/
+│           └── features/
+│               ├── Berita/
+│               ├── PPDB/
+│               ├── Gallery/
+│               └── Chat/
+│       ├── hooks/
+│       │   ├── useAuth.ts
+│       │   ├── useSocket.ts
+│       │   ├── useMediaQuery.ts
+│       │   └── useDebounce.ts
+│       ├── lib/
+│       │   ├── axios.ts
+│       │   ├── prisma.ts
+│       │   └── utils.ts
+│       ├── services/
+│       │   ├── auth.service.ts
+│       │   ├── berita.service.ts
+│       │   └── ppdb.service.ts
+│       ├── store/
+│       │   ├── useAuthStore.ts
+│       │   └── useThemeStore.ts
+│       └── types/
+│           ├── user.ts
+│           ├── berita.ts
+│           └── api.ts
+├── backend/
+│   ├── .env
+│   ├── Dockerfile
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── prisma/
+│   │   ├── schema.prisma
+│   │   └── seed.ts
+│   └── src/
+│       ├── index.ts
+│       ├── config/
+│       │   ├── database.ts
+│       │   ├── redis.ts
+│       │   └── cloudinary.ts
+│       ├── controllers/
+│       │   ├── auth.controller.ts
+│       │   ├── user.controller.ts
+│       │   └── berita.controller.ts
+│       ├── services/
+│       │   ├── auth.service.ts
+│       │   └── berita.service.ts
+│       ├── repositories/
+│       │   ├── user.repository.ts
+│       │   └── berita.repository.ts
+│       ├── middlewares/
+│       │   ├── auth.middleware.ts
+│       │   ├── rbac.middleware.ts
+│       │   └── validate.middleware.ts
+│       ├── routes/
+│       │   ├── index.ts
+│       │   ├── auth.routes.ts
+│       │   └── berita.routes.ts
+│       ├── utils/
+│       │   ├── jwt.ts
+│       │   ├── password.ts
+│       │   └── email.ts
+│       └── types/
+│           └── index.ts
+├── docker-compose.yml
+└── README.md
