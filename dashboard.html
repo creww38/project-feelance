@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAK Tarbiyatusshibyan kota bogor</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Inter -->
+    <link href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,800" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- AOS Animation Library -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <style>
+        :root {
+            --bs-body-font-family: 'Inter', sans-serif;
+            --gradient-primary: linear-gradient(310deg, #2152ff, #21d4fd);
+            --gradient-dark: linear-gradient(310deg, #141727, #3a416f);
+            --soft-bg: #f8f9fa;
+            --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+            --card-shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--soft-bg);
+            color: #344767;
+            overflow-x: hidden;
+        }
+
+        /* ========== ANIMASI CUSTOM ========== */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+            100% {
+                background-position: 200% 0;
+            }
+        }
+
+        @keyframes countUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fadeInUp {
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .animate-fadeInDown {
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .animate-fadeInLeft {
+            animation: fadeInLeft 0.8s ease-out;
+        }
+
+        .animate-fadeInRight {
+            animation: fadeInRight 0.8s ease-out;
+        }
+
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .animate-pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        /* ========== NAVBAR BLUR ========== */
+        .navbar-blur {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+            margin: 16px 20px;
+            padding: 10px 24px;
+            z-index: 1030;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: #344767;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        /* ===== LOGO SEKOLAH - BISA DIGANTI ===== */
+        .school-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            object-fit: cover;
+            /* Ganti background dengan logo sekolah */
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+
+        .school-logo:hover {
+            transform: rotate(10deg) scale(1.1);
+        }
+
+        .school-logo img {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        .school-logo .default-icon {
+            color: #fff;
+            font-size: 1.2rem;
+        }
+
+        /* Logo di footer */
+        .footer-logo {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            object-fit: cover;
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .footer-logo img {
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+
+        .nav-link {
+            color: #67748e !important;
+            font-weight: 500;
+            padding: 8px 16px !important;
+            border-radius: 8px;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: var(--gradient-primary);
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+            border-radius: 2px;
+        }
+
+        .nav-link:hover::after,
+        .nav-link.active::after {
+            width: 60%;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: #344767 !important;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .btn-gradient {
+            background: var(--gradient-primary);
+            color: #fff !important;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 16px rgba(33, 82, 255, 0.3);
+            text-decoration: none;
+            display: inline-block;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-gradient::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-gradient:hover::before {
+            left: 100%;
+        }
+
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(33, 82, 255, 0.4);
+        }
+
+        .btn-outline-soft {
+            border: 2px solid #e2e8f0;
+            color: #344767;
+            padding: 10px 22px;
+            border-radius: 10px;
+            font-weight: 600;
+            background: #fff;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-outline-soft:hover {
+            border-color: #2152ff;
+            color: #2152ff;
+            box-shadow: 0 4px 12px rgba(33, 82, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* ========== BANNER HERO ========== */
+        .banner-section {
+            position: relative;
+            width: 100%;
+            height: 85vh;
+            min-height: 500px;
+            border-radius: 24px;
+            overflow: hidden;
+            margin: 0 auto;
+            max-width: 1400px;
+        }
+
+        .banner-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            z-index: 0;
+            animation: fadeInUp 1s ease-out;
+            transition: transform 8s ease;
+        }
+
+        .banner-section:hover .banner-image {
+            transform: scale(1.05);
+        }
+
+        .banner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, 
+                rgba(0,0,0,0.4) 0%, 
+                rgba(0,0,0,0.2) 40%, 
+                rgba(0,0,0,0.55) 100%);
+            z-index: 1;
+        }
+
+        .banner-content {
+            position: relative;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            color: #fff;
+            padding: 0 20px;
+        }
+
+        .banner-content .badge-glass {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            animation: fadeInDown 1s ease-out 0.3s both;
+        }
+
+        .banner-content h1 {
+            font-size: 3.8rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            margin-bottom: 12px;
+            animation: fadeInUp 1s ease-out 0.5s both;
+        }
+
+        .banner-content .lead {
+            font-size: 1.2rem;
+            font-weight: 400;
+            opacity: 0.9;
+            max-width: 600px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            animation: fadeInUp 1s ease-out 0.7s both;
+        }
+
+        .banner-buttons {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 24px;
+            animation: fadeInUp 1s ease-out 0.9s both;
+        }
+
+        .banner-buttons .btn-glass {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.35);
+            color: #fff;
+            padding: 12px 26px;
+            border-radius: 30px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .banner-buttons .btn-glass:hover {
+            background: rgba(255,255,255,0.35);
+            color: #fff;
+            transform: translateY(-3px);
+        }
+
+        .banner-buttons .btn-solid {
+            background: #fff;
+            color: #1e293b;
+            padding: 12px 26px;
+            border-radius: 30px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+
+        .banner-buttons .btn-solid:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+            color: #1e293b;
+        }
+
+        /* Wave SVG */
+        .wave-container {
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* ========== CARDS ========== */
+        .card-soft {
+            background: #fff;
+            border: none;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            overflow: hidden;
+        }
+
+        .card-soft:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--card-shadow-hover);
+        }
+
+        .card-soft .card-body {
+            padding: 28px;
+        }
+
+        /* ========== STATS CARD ========== */
+        .stats-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 22px 16px;
+            text-align: center;
+            box-shadow: var(--card-shadow);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .stats-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--card-shadow-hover);
+        }
+
+        .stats-card .icon-circle {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            transition: transform 0.3s;
+        }
+
+        .stats-card:hover .icon-circle {
+            transform: rotate(360deg) scale(1.1);
+        }
+
+        .stats-card .icon-circle svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .stats-card h3 {
+            font-weight: 700;
+            font-size: 1.8rem;
+            color: #344767;
+            margin-bottom: 2px;
+        }
+
+        /* ========== COUNTER ANIMATION ========== */
+        .counter-value {
+            display: inline-block;
+            animation: countUp 0.8s ease-out;
+        }
+
+        /* ========== SECTION TITLE ========== */
+        .section-title {
+            font-weight: 700;
+            font-size: 1.9rem;
+            margin-bottom: 4px;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title .title-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--gradient-primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: transform 0.3s;
+        }
+
+        .section-title:hover .title-icon {
+            transform: rotate(-10deg) scale(1.1);
+        }
+
+        .section-title .title-icon svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .section-subtitle {
+            color: #67748e;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .text-gradient {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ========== BADGE ========== */
+        .badge-soft {
+            background: #f0f4ff;
+            color: #2152ff;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+        }
+
+        .badge-soft:hover {
+            background: #2152ff;
+            color: #fff;
+            transform: scale(1.05);
+        }
+
+        .badge-soft svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* ========== GALERI ========== */
+        .gallery-item {
+            border-radius: 16px;
+            overflow: hidden;
+            height: 200px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.12);
+        }
+
+        .gallery-item:hover img {
+            transform: scale(1.1);
+        }
+
+        .gallery-item .gallery-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            color: #fff;
+            padding: 24px 14px 12px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transform: translateY(0);
+            transition: transform 0.3s;
+        }
+
+        /* ========== GLASS PANEL ========== */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s;
+        }
+
+        .glass-panel:hover {
+            background: rgba(255, 255, 255, 0.85);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06);
+        }
+
+        /* ========== FORM ========== */
+        .form-control-soft {
+            border: 1px solid #e2e8f0;
+            border-radius: 30px;
+            padding: 12px 20px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s;
+        }
+
+        .form-control-soft:focus {
+            border-color: #2152ff;
+            box-shadow: 0 0 0 3px rgba(33, 82, 255, 0.1);
+            outline: none;
+            transform: translateY(-1px);
+        }
+
+        textarea.form-control-soft {
+            border-radius: 20px;
+        }
+
+        /* ========== FOOTER ========== */
+        .footer-section {
+            background: #fff;
+            border-radius: 24px 24px 0 0;
+            padding: 48px 24px 24px;
+            margin-top: 48px;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.03);
+        }
+
+        /* ========== SCROLL INDICATOR ========== */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 5;
+            animation: float 2s ease-in-out infinite;
+            cursor: pointer;
+        }
+
+        .scroll-indicator span {
+            display: block;
+            width: 24px;
+            height: 24px;
+            border-right: 2px solid #fff;
+            border-bottom: 2px solid #fff;
+            transform: rotate(45deg);
+            opacity: 0.8;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            .banner-section {
+                height: 65vh;
+                min-height: 400px;
+                border-radius: 16px;
+            }
+            .banner-content h1 {
+                font-size: 2.2rem;
+            }
+            .banner-content .lead {
+                font-size: 1rem;
+            }
+            .navbar-blur {
+                margin: 8px 10px;
+            }
+            .gallery-item {
+                height: 140px;
+            }
+        }
+
+        /* Loading shimmer untuk gambar */
+        .shimmer-bg {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== NAVBAR ==================== -->
+    <nav class="navbar navbar-expand-lg navbar-blur sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <!-- ===== LOGO SEKOLAH - BISA DIGANTI ===== -->
+                <div class="school-logo">
+                    <!-- 
+                        CARA MENGGANTI LOGO:
+                        1. Ganti dengan gambar: <img src="./assets/img/logo-sekolah.png" alt="Logo">
+                        2. Atau ganti SVG di bawah ini
+                    -->
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                </div>
+                SMK Cukurukuk
+            </a>
+            <button class="navbar-toggler shadow-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center gap-1">
+                    <li class="nav-item"><a class="nav-link active" href="#home">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#profil">Profil</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#jurusan">Jurusan</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#berita">Berita</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#galeri">Galeri</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#kontak">Kontak</a></li>
+                    <li class="nav-item ms-2">
+                        <a href="#kontak" class="btn-gradient">Hubungi Kami</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ==================== BANNER HERO ==================== -->
+    <section id="home" class="px-2 px-md-3">
+        <div class="banner-section">
+            <!-- GANTI GAMBAR BANNER DI SINI -->
+            <img 
+                src="https://pin.it/1vEIO81k6" 
+                alt="Banner SMK Cukurukuk" 
+                class="banner-image"
+                loading="eager"
+            >
+            <div class="banner-overlay"></div>
+            <div class="banner-content">
+                <span class="badge-glass">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    Sekolah Kejuruan Unggulan
+                </span>
+                <h1>SMK Cukurukuk</h1>
+                <p class="lead">Mencetak generasi unggul, kreatif, dan berdaya saing global dengan teknologi terkini.</p>
+                <div class="banner-buttons">
+                    <a href="#profil" class="btn-solid">Jelajahi Sekolah</a>
+                    <a href="#jurusan" class="btn-glass">Lihat Jurusan</a>
+                </div>
+            </div>
+            <!-- Scroll Indicator -->
+            <div class="scroll-indicator" onclick="document.getElementById('profil').scrollIntoView({behavior:'smooth'})">
+                <span></span>
+            </div>
+            <!-- Wave SVG -->
+            <div class="wave-container">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 200" preserveAspectRatio="none">
+                    <path fill="#f8f9fa" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,112C672,96,768,96,864,106.7C960,117,1056,139,1152,138.7C1248,139,1344,117,1392,106.7L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+                </svg>
+            </div>
+        </div>
+
+        <!-- ==================== STATS ==================== -->
+        <div class="container" style="margin-top: -60px; position: relative; z-index: 5;">
+            <div class="row g-3">
+                <div class="col-md-3 col-6" data-aos="fade-up" data-aos-delay="100">
+                    <div class="stats-card">
+                        <div class="icon-circle">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                        </div>
+                        <h3 class="counter-value" data-target="1250">0</h3>
+                        <small class="text-muted">Siswa Aktif</small>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6" data-aos="fade-up" data-aos-delay="200">
+                    <div class="stats-card">
+                        <div class="icon-circle">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                        <h3 class="counter-value" data-target="85">0</h3>
+                        <small class="text-muted">Guru</small>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6" data-aos="fade-up" data-aos-delay="300">
+                    <div class="stats-card">
+                        <div class="icon-circle">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="counter-value" data-target="6">0</h3>
+                        <small class="text-muted">Jurusan</small>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6" data-aos="fade-up" data-aos-delay="400">
+                    <div class="stats-card">
+                        <div class="icon-circle">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+                                <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+                                <path d="M4 22h16"></path>
+                                <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
+                                <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
+                                <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="counter-value" data-target="42">0</h3>
+                        <small class="text-muted">Prestasi</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SAMBUTAN KEPALA SEKOLAH ==================== -->
+        <div class="container mt-5" data-aos="fade-up" data-aos-delay="200">
+            <div class="card-soft">
+                <div class="card-body d-flex align-items-center gap-4 flex-wrap">
+                    <div class="animate-float" style="flex-shrink: 0;">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#2152ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold text-gradient">Sambutan Kepala Sekolah</h5>
+                        <p class="mb-1"><em>"Assalamu'alaikum Wr. Wb. SMK Cukurukuk berkomitmen membentuk siswa berkarakter, kompeten, dan siap kerja. Kami terus berinovasi dalam pembelajaran berbasis industri."</em></p>
+                        <strong class="text-dark">— Drs. Andi Wijaya, M.Pd.</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== BERITA TERBARU ==================== -->
+        <div class="container mt-5">
+            <div class="section-title" data-aos="fade-right">
+                <span class="title-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 11a9 9 0 0 1 9 9"></path>
+                        <path d="M4 4a16 16 0 0 1 16 16"></path>
+                        <circle cx="5" cy="19" r="1"></circle>
+                    </svg>
+                </span>
+                Berita Terbaru
+            </div>
+            <p class="section-subtitle" data-aos="fade-right" data-aos-delay="100">Informasi dan kegiatan terkini dari SMK Cukurukuk</p>
+            <div class="row g-4">
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="150">
+                    <div class="card-soft">
+                        <div class="card-body">
+                            <span class="badge-soft mb-2">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+                                Prestasi
+                            </span>
+                            <h5 class="fw-bold mt-2">Juara 1 Lomba Robotik Nasional 2026</h5>
+                            <p class="text-muted small">Siswa Teknik Elektro berhasil menyabet juara pertama di ajang KRON.</p>
+                            <small class="text-muted">12 Juni 2026</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="250">
+                    <div class="card-soft">
+                        <div class="card-body">
+                            <span class="badge-soft mb-2">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                Kegiatan
+                            </span>
+                            <h5 class="fw-bold mt-2">Workshop IoT Bareng Industri</h5>
+                            <p class="text-muted small">Siswa belajar implementasi Internet of Things langsung dari praktisi.</p>
+                            <small class="text-muted">22 April 2026</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="350">
+                    <div class="card-soft">
+                        <div class="card-body">
+                            <span class="badge-soft mb-2">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                Informasi
+                            </span>
+                            <h5 class="fw-bold mt-2">PPDB 2026/2027 Telah Dibuka</h5>
+                            <p class="text-muted small">Gelombang 1 dibuka hingga 30 Juli 2026. Segera daftar!</p>
+                            <small class="text-muted">20 Juni 2026</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== PENGUMUMAN ==================== -->
+        <div class="container mt-4" data-aos="fade-up" data-aos-delay="200">
+            <div class="card-soft">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <span class="title-icon animate-pulse" style="width:32px;height:32px;border-radius:8px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                        </span>
+                        <h5 class="fw-bold mb-0">Pengumuman Terbaru</h5>
+                    </div>
+                    <ul class="list-unstyled mb-0">
+                        <li class="py-2 border-bottom d-flex align-items-center gap-2">
+                            <svg width="6" height="6" viewBox="0 0 24 24" fill="#2152ff"><circle cx="12" cy="12" r="12"/></svg>
+                            Jadwal ujian semester genap: 12–17 Juni 2026
+                        </li>
+                        <li class="py-2 border-bottom d-flex align-items-center gap-2">
+                            <svg width="6" height="6" viewBox="0 0 24 24" fill="#2152ff"><circle cx="12" cy="12" r="12"/></svg>
+                            Pengumuman kelulusan kelas XII: 25 Juni 2026
+                        </li>
+                        <li class="py-2 d-flex align-items-center gap-2">
+                            <svg width="6" height="6" viewBox="0 0 24 24" fill="#2152ff"><circle cx="12" cy="12" r="12"/></svg>
+                            Libur semester mulai 1 Juli 2026
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== PROFIL SEKOLAH ==================== -->
+    <section id="profil" class="container mt-5 pt-4">
+        <div class="section-title" data-aos="fade-right">
+            <span class="title-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+            </span>
+            Profil Sekolah
+        </div>
+        <p class="section-subtitle" data-aos="fade-right" data-aos-delay="100">Mengenal lebih dekat SMK Cukurukuk</p>
+
+        <div class="row g-4">
+            <div class="col-lg-6" data-aos="fade-up" data-aos-delay="150">
+                <div class="card-soft h-100">
+                    <div class="card-body">
+                        <h5 class="fw-bold text-gradient">Sejarah Singkat</h5>
+                        <p>SMK Cukurukuk didirikan pada tahun 1998 dengan fokus teknologi dan kejuruan. Berlokasi di jantung kota Cukurukuk, sekolah ini telah meluluskan ribuan siswa yang tersebar di industri nasional maupun internasional. Dengan akreditasi A, kami terus berkomitmen meningkatkan kualitas pendidikan vokasi.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="250">
+                <div class="card-soft h-100 text-center">
+                    <div class="card-body">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2152ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-3">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        <h5 class="fw-bold">Visi</h5>
+                        <p class="text-muted small">Menjadi SMK unggulan yang menghasilkan lulusan kompeten, berakhlak, dan berwawasan global.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="350">
+                <div class="card-soft h-100 text-center">
+                    <div class="card-body">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2152ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-3">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <circle cx="12" cy="12" r="6"></circle>
+                            <circle cx="12" cy="12" r="2"></circle>
+                        </svg>
+                        <h5 class="fw-bold">Misi</h5>
+                        <p class="text-muted small">Menyelenggarakan pendidikan berbasis industri dan mengembangkan karakter siswa secara holistik.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Struktur Organisasi -->
+        <div class="card-soft mt-4" data-aos="fade-up" data-aos-delay="200">
+            <div class="card-body">
+                <h5 class="fw-bold text-gradient mb-4">Struktur Organisasi</h5>
+                <div class="row g-3 text-center">
+                    <div class="col-md-3 col-6" data-aos="zoom-in" data-aos-delay="100">
+                        <div class="glass-panel p-3">
+                            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#2152ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            <h6 class="fw-bold">Kepala Sekolah</h6>
+                            <small>Drs. Andi Wijaya</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6" data-aos="zoom-in" data-aos-delay="200">
+                        <div class="glass-panel p-3">
+                            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#2152ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-2">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="8.5" cy="7" r="4"></circle>
+                            </svg>
+                            <h6 class="fw-bold">Waka Kurikulum</h6>
+                            <small>Rina, S.Pd.</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6" data-aos="zoom-in" data-aos-delay="300">
+                        <div class="glass-panel p-3">
+                            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#2152ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                            </svg>
+                            <h6 class="fw-bold">Waka Kesiswaan</h6>
+                            <small>Budi Hartono</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6" data-aos="zoom-in" data-aos-delay="400">
+                        <div class="glass-panel p-3">
+                            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#2152ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            <h6 class="fw-bold">Kajur TKJ</h6>
+                            <small>Siti Aminah</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fasilitas & Data Guru -->
+        <div class="row g-4 mt-2">
+            <div class="col-md-6" data-aos="fade-right" data-aos-delay="150">
+                <div class="card-soft h-100">
+                    <div class="card-body">
+                        <h5 class="fw-bold text-gradient">Data Guru</h5>
+                        <p>Total <strong>85 guru</strong> tersertifikasi, terdiri dari guru normatif, adaptif, dan produktif yang kompeten di bidangnya masing-masing.</p>
+                        <span class="badge-soft">72 Guru Tersertifikasi</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6" data-aos="fade-left" data-aos-delay="150">
+                <div class="card-soft h-100">
+                    <div class="card-body">
+                        <h5 class="fw-bold text-gradient">Fasilitas</h5>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <span class="badge-soft">Lab Komputer</span>
+                            <span class="badge-soft">Bengkel Otomotif</span>
+                            <span class="badge-soft">Perpustakaan Digital</span>
+                            <span class="badge-soft">Lapangan Basket</span>
+                            <span class="badge-soft">Ruang Praktik TKJ</span>
+                            <span class="badge-soft">Kantin Sehat</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== JURUSAN ==================== -->
+    <section id="jurusan" class="container mt-5 pt-4">
+        <div class="section-title" data-aos="fade-right">
+            <span class="title-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+            </span>
+            Jurusan
+        </div>
+        <p class="section-subtitle" data-aos="fade-right" data-aos-delay="100">Pilihan program keahlian unggulan di SMK Cukurukuk</p>
+        <div class="row g-4">
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="150">
+                <div class="card-soft text-center h-100">
+                    <div class="card-body">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#2152ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-3">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                            <line x1="8" y1="21" x2="16" y2="21"></line>
+                            <line x1="12" y1="17" x2="12" y2="21"></line>
+                        </svg>
+                        <h5 class="fw-bold">Teknik Komputer & Jaringan</h5>
+                        <p class="text-muted small">Perakitan komputer, jaringan Cisco & MikroTik, administrasi server. Lulusan siap jadi teknisi IT profesional.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="250">
+                <div class="card-soft text-center h-100">
+                    <div class="card-body">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#2152ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-3">
+                            <rect x="2" y="6" width="20" height="12" rx="2" ry="2"></rect>
+                            <circle cx="7" cy="12" r="2"></circle>
+                            <circle cx="17" cy="12" r="2"></circle>
+                        </svg>
+                        <h5 class="fw-bold">Teknik Kendaraan Ringan</h5>
+                        <p class="text-muted small">Perawatan mesin, sistem kelistrikan, dan diagnosis kendaraan modern dengan bengkel standar industri.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="350">
+                <div class="card-soft text-center h-100">
+                    <div class="card-body">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#2152ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-3">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                        </svg>
+                        <h5 class="fw-bold">Teknik Instalasi Listrik</h5>
+                        <p class="text-muted small">Instalasi listrik bangunan & industri, termasuk smart home system dengan panel peraga lengkap.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== BERITA & PENGUMUMAN ==================== -->
+    <section id="berita" class="container mt-5 pt-4">
+        <div class="section-title" data-aos="fade-right">
+            <span class="title-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                </svg>
+            </span>
+            Berita & Pengumuman
+        </div>
+        <p class="section-subtitle" data-aos="fade-right" data-aos-delay="100">Kategori: Prestasi, Kegiatan, Informasi</p>
+        <div class="card-soft" data-aos="fade-up" data-aos-delay="200">
+            <div class="card-body">
+                <div class="d-flex gap-2 flex-wrap mb-4">
+                    <span class="badge-soft">Semua</span>
+                    <span class="badge-soft">Prestasi</span>
+                    <span class="badge-soft">Kegiatan</span>
+                    <span class="badge-soft">Informasi</span>
+                </div>
+                <div class="border-bottom pb-3 mb-3">
+                    <span class="badge-soft mb-1">Prestasi</span>
+                    <h6 class="fw-bold mt-1">Tim Futsal Juara 2 Tingkat Provinsi</h6>
+                    <small class="text-muted">15 Mei 2026</small>
+                </div>
+                <div class="border-bottom pb-3 mb-3">
+                    <span class="badge-soft mb-1">Kegiatan</span>
+                    <h6 class="fw-bold mt-1">Workshop IoT Bersama Industri</h6>
+                    <small class="text-muted">22 April 2026</small>
+                </div>
+                <div>
+                    <span class="badge-soft mb-1">Informasi</span>
+                    <h6 class="fw-bold mt-1">Perubahan Jadwal Prakerin Gelombang 2</h6>
+                    <small class="text-muted">10 Juni 2026</small>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== GALERI ==================== -->
+    <section id="galeri" class="container mt-5 pt-4">
+        <div class="section-title" data-aos="fade-right">
+            <span class="title-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+            </span>
+            Galeri
+        </div>
+        <p class="section-subtitle" data-aos="fade-right" data-aos-delay="100">Album foto dan video kegiatan sekolah</p>
+        <div class="row g-3">
+            <div class="col-md-3 col-6" data-aos="zoom-in" data-aos-delay="100">
+                <div class="gallery-item">
+                    <img src="https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=80" alt="Kegiatan Belajar" loading="lazy">
+                    <div class="gallery-overlay">Kegiatan Belajar</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6" data-aos="zoom-in" data-aos-delay="200">
+                <div class="gallery-item">
+                    <img src="https://images.unsplash.com/photo-1577896851231-70ef18881754?w=400&q=80" alt="Praktik Lab" loading="lazy">
+                    <div class="gallery-overlay">Praktik Lab</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6" data-aos="zoom-in" data-aos-delay="300">
+                <div class="gallery-item">
+                    <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&q=80" alt="Seminar & Workshop" loading="lazy">
+                    <div class="gallery-overlay">Seminar</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6" data-aos="zoom-in" data-aos-delay="400">
+                <div class="gallery-item">
+                    <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&q=80" alt="Kegiatan Sekolah" loading="lazy">
+                    <div class="gallery-overlay">Kegiatan</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== KONTAK ==================== -->
+    <section id="kontak" class="container mt-5 pt-4">
+        <div class="section-title" data-aos="fade-right">
+            <span class="title-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+            </span>
+            Kontak Kami
+        </div>
+        <p class="section-subtitle" data-aos="fade-right" data-aos-delay="100">Hubungi SMK Cukurukuk untuk informasi lebih lanjut</p>
+        <div class="row g-4">
+            <div class="col-lg-5" data-aos="fade-right" data-aos-delay="150">
+                <div class="card-soft h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start gap-3 mb-3">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2152ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                            <div>
+                                <strong>Alamat</strong>
+                                <p class="text-muted mb-0 small">Jl. Pendidikan No. 45, Cukurukuk, Jawa Barat 45123</p>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-start gap-3 mb-3">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2152ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;">
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                            </svg>
+                            <div>
+                                <strong>WhatsApp</strong>
+                                <p class="text-muted mb-0 small">+62 812-3456-7890</p>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-start gap-3">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2152ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px;">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                <polyline points="22,6 12,13 2,6"></polyline>
+                            </svg>
+                            <div>
+                                <strong>Email</strong>
+                                <p class="text-muted mb-0 small">info@smkcukurukuk.sch.id</p>
+                            </div>
+                        </div>
+                        <div class="mt-4 p-5 glass-panel text-center">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2152ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                            <p class="text-muted small mb-0">Google Maps Interaktif</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-7" data-aos="fade-left" data-aos-delay="150">
+                <div class="card-soft h-100">
+                    <div class="card-body">
+                        <h5 class="fw-bold text-gradient mb-3">Form Kontak</h5>
+                        <form>
+                            <div class="mb-3">
+                                <input type="text" class="form-control-soft w-100" placeholder="Nama Lengkap">
+                            </div>
+                            <div class="mb-3">
+                                <input type="email" class="form-control-soft w-100" placeholder="Email">
+                            </div>
+                            <div class="mb-3">
+                                <textarea class="form-control-soft w-100" rows="4" placeholder="Pesan Anda"></textarea>
+                            </div>
+                            <button type="button" class="btn-gradient">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px;">
+                                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                </svg>
+                                Kirim Pesan
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="footer-section mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-5 mb-4">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <!-- ===== LOGO FOOTER - BISA DIGANTI ===== -->
+                        <div class="footer-logo">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                            </svg>
+                        </div>
+                        <div>
+                            <h6 class="text-gradient fw-bold mb-0">SMK Cukurukuk</h6>
+                            <small class="text-muted">Sekolah Kejuruan Unggulan</small>
+                        </div>
+                    </div>
+                    <p class="text-muted small">Mencetak generasi unggul, kreatif, dan berdaya saing global dengan teknologi terkini.</p>
+                    <div class="d-flex gap-3 mt-2">
+                        <a href="#" class="text-muted" style="font-size:1.3rem; transition: color 0.3s;"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="text-muted" style="font-size:1.3rem; transition: color 0.3s;"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-muted" style="font-size:1.3rem; transition: color 0.3s;"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h6 class="text-gradient fw-bold">Link Cepat</h6>
+                    <ul class="list-unstyled small">
+                        <li class="mb-1"><a href="#profil" class="text-muted text-decoration-none">Profil Sekolah</a></li>
+                        <li class="mb-1"><a href="#jurusan" class="text-muted text-decoration-none">Jurusan</a></li>
+                        <li class="mb-1"><a href="#berita" class="text-muted text-decoration-none">Berita</a></li>
+                        <li class="mb-1"><a href="#galeri" class="text-muted text-decoration-none">Galeri</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h6 class="text-gradient fw-bold">Kontak</h6>
+                    <p class="text-muted small mb-1"><i class="fas fa-phone me-2"></i>(021) 1234-5678</p>
+                    <p class="text-muted small mb-1"><i class="fas fa-envelope me-2"></i>info@smkcukurukuk.sch.id</p>
+                    <p class="text-muted small mb-0"><i class="fas fa-map-marker-alt me-2"></i>Jl. Pendidikan No. 45, Cukurukuk</p>
+                </div>
+            </div>
+            <hr class="text-muted my-3">
+            <p class="text-center text-muted small mb-0">&copy; 2026 SMK Cukurukuk. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- ==================== SCRIPTS ==================== -->
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- AOS Animation JS -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        // Inisialisasi AOS
+        AOS.init({
+            duration: 800,
+            once: false,
+            mirror: false,
+            offset: 100,
+        });
+
+        // Smooth Scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    const navbarCollapse = document.getElementById('navbarNav');
+                    if (navbarCollapse.classList.contains('show')) {
+                        navbarCollapse.classList.remove('show');
+                    }
+                }
+            });
+        });
+
+        // Counter Animation
+        function animateCounter(el) {
+            const target = parseInt(el.getAttribute('data-target'));
+            const duration = 2000;
+            const step = target / (duration / 16);
+            let current = 0;
+
+            const updateCounter = () => {
+                current += step;
+                if (current < target) {
+                    el.textContent = Math.floor(current).toLocaleString();
+                    requestAnimationFrame(updateCounter);
+                } else {
+                    el.textContent = target.toLocaleString();
+                }
+            };
+            updateCounter();
+        }
+
+        // Intersection Observer untuk counter
+        const counterObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const counters = entry.target.querySelectorAll('.counter-value');
+                    counters.forEach(counter => {
+                        if (counter.textContent === '0') {
+                            animateCounter(counter);
+                        }
+                    });
+                }
+            });
+        }, { threshold: 0.5 });
+
+        // Amati stats container
+        const statsContainer = document.querySelector('.container .row.g-3');
+        if (statsContainer) {
+            counterObserver.observe(statsContainer);
+        }
+
+        // Navbar active link update on scroll
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('section[id]');
+            const navLinks = document.querySelectorAll('.nav-link');
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 120;
+                if (window.scrollY >= sectionTop) {
+                    current = section.getAttribute('id');
+                }
+            });
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

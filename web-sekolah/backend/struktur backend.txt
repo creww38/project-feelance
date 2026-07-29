@@ -1,0 +1,151 @@
+backend/
+├── .env
+├── .env.example
+├── .eslintrc.js
+├── .prettierrc
+├── Dockerfile
+├── docker-compose.yml
+├── package.json
+├── tsconfig.json
+├── jest.config.js
+├── prisma/
+│   ├── schema.prisma
+│   ├── migrations/
+│   ├── seed.ts
+│   └── seed-data/
+│       ├── users.ts
+│       ├── permissions.ts
+│       └── settings.ts
+├── uploads/
+│   ├── images/
+│   ├── documents/
+│   └── temp/
+└── src/
+    ├── index.ts
+    ├── app.ts
+    ├── config/
+    │   ├── database.ts
+    │   ├── redis.ts
+    │   ├── cloudinary.ts
+    │   ├── email.ts
+    │   ├── jwt.ts
+    │   └── logger.ts
+    ├── controllers/
+    │   ├── auth.controller.ts
+    │   ├── user.controller.ts
+    │   ├── guru.controller.ts
+    │   ├── siswa.controller.ts
+    │   ├── berita.controller.ts
+    │   ├── kategori.controller.ts
+    │   ├── galeri.controller.ts
+    │   ├── pengumuman.controller.ts
+    │   ├── agenda.controller.ts
+    │   ├── ppdb.controller.ts
+    │   ├── absensi.controller.ts
+    │   ├── jadwal.controller.ts
+    │   ├── materi.controller.ts
+    │   ├── tugas.controller.ts
+    │   ├── nilai.controller.ts
+    │   ├── perpustakaan.controller.ts
+    │   ├── alumni.controller.ts
+    │   ├── pesan.controller.ts
+    │   ├── notifikasi.controller.ts
+    │   ├── dashboard.controller.ts
+    │   ├── setting.controller.ts
+    │   ├── upload.controller.ts
+    │   └── search.controller.ts
+    ├── services/
+    │   ├── auth.service.ts
+    │   ├── user.service.ts
+    │   ├── guru.service.ts
+    │   ├── siswa.service.ts
+    │   ├── berita.service.ts
+    │   ├── galeri.service.ts
+    │   ├── pengumuman.service.ts
+    │   ├── agenda.service.ts
+    │   ├── ppdb.service.ts
+    │   ├── absensi.service.ts
+    │   ├── jadwal.service.ts
+    │   ├── eLearning.service.ts
+    │   ├── nilai.service.ts
+    │   ├── perpustakaan.service.ts
+    │   ├── alumni.service.ts
+    │   ├── pesan.service.ts
+    │   ├── notifikasi.service.ts
+    │   ├── dashboard.service.ts
+    │   ├── setting.service.ts
+    │   ├── upload.service.ts
+    │   ├── search.service.ts
+    │   └── email.service.ts
+    ├── repositories/
+    │   ├── user.repository.ts
+    │   ├── guru.repository.ts
+    │   ├── siswa.repository.ts
+    │   ├── berita.repository.ts
+    │   ├── galeri.repository.ts
+    │   ├── pengumuman.repository.ts
+    │   ├── agenda.repository.ts
+    │   ├── ppdb.repository.ts
+    │   ├── absensi.repository.ts
+    │   ├── jadwal.repository.ts
+    │   ├── materi.repository.ts
+    │   ├── tugas.repository.ts
+    │   ├── nilai.repository.ts
+    │   ├── perpustakaan.repository.ts
+    │   ├── alumni.repository.ts
+    │   ├── pesan.repository.ts
+    │   └── notifikasi.repository.ts
+    ├── routes/
+    │   ├── index.ts
+    │   ├── auth.routes.ts
+    │   ├── user.routes.ts
+    │   ├── guru.routes.ts
+    │   ├── siswa.routes.ts
+    │   ├── berita.routes.ts
+    │   ├── galeri.routes.ts
+    │   ├── pengumuman.routes.ts
+    │   ├── agenda.routes.ts
+    │   ├── ppdb.routes.ts
+    │   ├── absensi.routes.ts
+    │   ├── jadwal.routes.ts
+    │   ├── eLearning.routes.ts
+    │   ├── perpustakaan.routes.ts
+    │   ├── alumni.routes.ts
+    │   ├── pesan.routes.ts
+    │   ├── notifikasi.routes.ts
+    │   ├── dashboard.routes.ts
+    │   ├── setting.routes.ts
+    │   ├── upload.routes.ts
+    │   └── search.routes.ts
+    ├── middlewares/
+    │   ├── auth.middleware.ts
+    │   ├── rbac.middleware.ts
+    │   ├── validate.middleware.ts
+    │   ├── upload.middleware.ts
+    │   ├── error.middleware.ts
+    │   ├── rateLimiter.middleware.ts
+    │   └── auditLog.middleware.ts
+    ├── validations/
+    │   ├── auth.validation.ts
+    │   ├── user.validation.ts
+    │   ├── berita.validation.ts
+    │   ├── ppdb.validation.ts
+    │   └── common.validation.ts
+    ├── utils/
+    │   ├── jwt.ts
+    │   ├── password.ts
+    │   ├── email.ts
+    │   ├── AppError.ts
+    │   ├── asyncHandler.ts
+    │   ├── pagination.ts
+    │   ├── slug.ts
+    │   ├── fileHelper.ts
+    │   └── responseHelper.ts
+    ├── types/
+    │   ├── index.ts
+    │   ├── express.d.ts
+    │   └── enums.ts
+    └── __tests__/
+        ├── auth.test.ts
+        ├── berita.test.ts
+        └── setup.ts
