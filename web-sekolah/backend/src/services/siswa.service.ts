@@ -1,15 +1,15 @@
-// src/services/siswa.service.ts
 import { SiswaRepository } from '../repositories/siswa.repository';
 import { UserRepository } from '../repositories/user.repository';
-import bcrypt from 'bcryptjs';
 import { AppError } from '../utils/AppError';
-import * as XLSX from 'xlsx';
+import { PaginationOptions } from '../utils/pagination';
+import bcrypt from 'bcryptjs';
+import prisma from '../config/database';
 
 const siswaRepository = new SiswaRepository();
 const userRepository = new UserRepository();
 
 export class SiswaService {
-  async getAll(options: any, filters: any) {
+  async getAll(options: PaginationOptions, filters: any) {
     const where: any = {};
 
     if (filters.search) {
@@ -20,12 +20,16 @@ export class SiswaService {
       ];
     }
 
-    if (filters.kelasId) where.kelasId = filters.kelasId;
-    if (filters.status) where.status = filters.status;
-    if (filters.tahunMasuk) where.tahunMasuk = filters.tahunMasuk;
+    if (filters.kelasId) {
+      where.kelasId = filters.kelasId;
+    }
 
-    if (filters.jurusanId) {
-      where.kelas = { jurusanId: filters.jurusanId };
+    if (filters.status) {
+      where.status = filters.status;
+    }
+
+    if (filters.tahunMasuk) {
+      where.tahunMasuk = parseInt(filters.tahunMasuk);
     }
 
     return siswaRepository.findAll(options, where);
@@ -33,26 +37,58 @@ export class SiswaService {
 
   async getById(id: string) {
     const siswa = await siswaRepository.findById(id);
-    if (!siswa) throw new AppError('Siswa tidak ditemukan', 404);
+    if (!siswa) {
+      throw new AppError('Siswa tidak ditemukan', 404);
+    }
     return siswa;
   }
 
+  async getByUserId(userId: string) {
+    const siswa = await siswaRepository.findByUserId(userId);
+    if (!siswa) {
+      throw new AppError('Data siswa tidak ditemukan', 404);
+    }
+    return siswa;
+  }
+
+  async getByKelas(kelasId: string) {
+    return siswaRepository.findByKelas(kelasId);
+  }
+
   async create(data: any) {
-    const existingUser = await userRepository.findByEmail(data.email);
-    if (existingUser) throw new AppError('Email sudah digunakan', 400);
+    // Check uniqueness
+    const existingNis = await siswaRepository.findByNis(data.nis);
+    if (existingNis) {
+      throw new AppError('NIS sudah digunakan', 400);
+    }
 
+    if (data.nisn) {
+      const existingNisn = await siswaRepository.findByNisn(data.nisn);
+      if (existingNisn) {
+        throw new AppError('NISN sudah digunakan', 400);
+      }
+    }
+
+    // Check kelas capacity
+    const kelas = await prisma.kelas.findUnique({
+      where: { id: data.kelasId },
+      include: { _count: { select: { siswa: true } } },
+    });
+
+    if (kelas && kelas._count.siswa >= (kelas.kapasitas || 30)) {
+      throw new AppError('Kelas sudah penuh', 400);
+    }
+
+    // Create user
     const hashedPassword = await bcrypt.hash(data.password || 'Siswa123!', 12);
-
     const user = await userRepository.create({
       email: data.email,
-      username: data.username || data.nis,
+      username: data.username,
       password: hashedPassword,
       namaLengkap: data.namaLengkap,
       noTelp: data.noTelp,
       alamat: data.alamat,
       jenisKelamin: data.jenisKelamin,
-      tempatLahir: data.tempatLahir,
-      tanggalLahir: data.tanggalLahir ? new Date(data.tanggalLahir) : undefined,
       userRoles: {
         create: {
           role: { connect: { nama: 'SISWA' } },
@@ -60,6 +96,7 @@ export class SiswaService {
       },
     });
 
+    // Create siswa profile
     const siswa = await siswaRepository.create({
       userId: user.id,
       nis: data.nis,
@@ -70,14 +107,17 @@ export class SiswaService {
       tahunMasuk: data.tahunMasuk,
     });
 
-    return siswa;
+    return siswaRepository.findById(siswa.id);
   }
 
   async update(id: string, data: any) {
     const siswa = await siswaRepository.findById(id);
-    if (!siswa) throw new AppError('Siswa tidak ditemukan', 404);
+    if (!siswa) {
+      throw new AppError('Siswa tidak ditemukan', 404);
+    }
 
-    if (data.namaLengkap || data.noTelp) {
+    // Update user data
+    if (data.namaLengkap || data.noTelp || data.alamat) {
       await userRepository.update(siswa.userId, {
         namaLengkap: data.namaLengkap,
         noTelp: data.noTelp,
@@ -85,66 +125,78 @@ export class SiswaService {
       });
     }
 
-    return siswaRepository.update(id, data);
+    // Update siswa data
+    const { namaLengkap, noTelp, alamat, ...siswaData } = data;
+    return siswaRepository.update(id, siswaData);
   }
 
   async delete(id: string) {
     const siswa = await siswaRepository.findById(id);
-    if (!siswa) throw new AppError('Siswa tidak ditemukan', 404);
+    if (!siswa) {
+      throw new AppError('Siswa tidak ditemukan', 404);
+    }
 
-    await siswaRepository.delete(id);
-    await userRepository.delete(siswa.userId);
+    await userRepository.update(siswa.userId, { isActive: false });
+    await siswaRepository.update(id, { status: 'KELUAR' });
+    return { message: 'Siswa berhasil dinonaktifkan' };
   }
 
-  async getByKelas(kelasId: string) {
-    return siswaRepository.findByKelas(kelasId);
-  }
+  async naikKelas(siswaIds: string[], kelasBaruId: string) {
+    const kelas = await prisma.kelas.findUnique({ where: { id: kelasBaruId } });
+    if (!kelas) {
+      throw new AppError('Kelas tujuan tidak ditemukan', 404);
+    }
 
-  async importExcel(file: Express.Multer.File) {
-    const workbook = XLSX.read(file.buffer, { type: 'buffer' });
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const data = XLSX.utils.sheet_to_json(sheet);
-
-    const results = { success: 0, failed: 0, errors: [] as string[] };
-
-    for (const row of data as any[]) {
-      try {
-        await this.create({
-          nis: row.nis?.toString(),
-          nisn: row.nisn?.toString(),
-          namaLengkap: row.nama_lengkap,
-          email: row.email,
-          kelasId: row.kelas_id,
-          tahunMasuk: parseInt(row.tahun_masuk),
-          jenisKelamin: row.jenis_kelamin === 'L' ? 'L' : 'P',
-        });
-        results.success++;
-      } catch (error: any) {
-        results.failed++;
-        results.errors.push(`Row ${results.success + results.failed}: ${error.message}`);
-      }
+    const results = [];
+    for (const siswaId of siswaIds) {
+      const updated = await siswaRepository.update(siswaId, { kelasId: kelasBaruId });
+      results.push(updated);
     }
 
     return results;
   }
 
-  async exportExcel(filters: any) {
-    const siswa = await this.getAll({ page: 1, limit: 10000 }, filters);
-    
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(
-      siswa.items.map((s: any) => ({
-        NIS: s.nis,
-        NISN: s.nisn,
-        Nama: s.user.namaLengkap,
-        Kelas: s.kelas.nama,
-        'Jenis Kelamin': s.user.jenisKelamin,
-        'Tahun Masuk': s.tahunMasuk,
-        Status: s.status,
-      }))
-    );
-    
-    XLSX.utils.book_append_sheet(wb, ws, 'Siswa');
-    return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+  async luluskan(siswaIds: string[], tahunLulus: number) {
+    const results = [];
+    for (const siswaId of siswaIds) {
+      const siswa = await siswaRepository.findById(siswaId);
+      if (!siswa) continue;
+
+      // Update status to LULUS
+      await siswaRepository.update(siswaId, { status: 'LULUS' });
+
+      // Create alumni record
+      await prisma.alumni.create({
+        data: {
+          siswaId,
+          tahunLulus,
+          jurusan: siswa.kelas?.jurusan?.nama,
+        },
+      });
+
+      results.push(siswaId);
+    }
+
+    return results;
+  }
+
+  async getStats() {
+    const totalSiswa = await siswaRepository.count();
+    const perKelas = await prisma.kelas.findMany({
+      include: {
+        _count: { select: { siswa: true } },
+        jurusan: { select: { nama: true } },
+      },
+      orderBy: { nama: 'asc' },
+    });
+
+    return {
+      totalSiswa,
+      perKelas: perKelas.map((k) => ({
+        kelas: k.nama,
+        jurusan: k.jurusan.nama,
+        jumlah: k._count.siswa,
+      })),
+    };
   }
 }

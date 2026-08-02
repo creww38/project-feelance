@@ -1,79 +1,51 @@
-// src/controllers/jadwal.controller.ts
 import { Request, Response } from 'express';
 import { JadwalService } from '../services/jadwal.service';
 import { asyncHandler } from '../utils/asyncHandler';
+import { ResponseHelper } from '../utils/responseHelper';
+import { paginationSchema } from '../validations/common.validation';
 
 const jadwalService = new JadwalService();
 
 export class JadwalController {
-  getByKelas = asyncHandler(async (req: Request, res: Response) => {
-    const { kelasId } = req.params;
-    const jadwal = await jadwalService.getByKelas(kelasId);
+  getAll = asyncHandler(async (req: Request, res: Response) => {
+    const query = paginationSchema.parse(req.query);
+    const result = await jadwalService.getAll(query, req.query);
+    ResponseHelper.success(res, result);
+  });
 
-    res.status(200).json({
-      status: 'success',
-      data: { jadwal },
-    });
+  getById = asyncHandler(async (req: Request, res: Response) => {
+    const jadwal = await jadwalService.getById(req.params.id);
+    ResponseHelper.success(res, { jadwal });
+  });
+
+  getByKelas = asyncHandler(async (req: Request, res: Response) => {
+    const result = await jadwalService.getByKelas(req.params.kelasId);
+    ResponseHelper.success(res, { items: result });
   });
 
   getByGuru = asyncHandler(async (req: Request, res: Response) => {
-    const { guruId } = req.params;
-    const jadwal = await jadwalService.getByGuru(guruId);
-
-    res.status(200).json({
-      status: 'success',
-      data: { jadwal },
-    });
-  });
-
-  getBySiswa = asyncHandler(async (req: Request, res: Response) => {
-    const siswaId = req.user?.siswa?.id || req.params.siswaId;
-    const jadwal = await jadwalService.getBySiswa(siswaId);
-
-    res.status(200).json({
-      status: 'success',
-      data: { jadwal },
-    });
+    const hari = req.query.hari as string | undefined;
+    const result = await jadwalService.getByGuru(req.params.guruId, hari);
+    ResponseHelper.success(res, { items: result });
   });
 
   create = asyncHandler(async (req: Request, res: Response) => {
-    const data = req.body;
-    const jadwal = await jadwalService.create(data);
-
-    res.status(201).json({
-      status: 'success',
-      data: { jadwal },
-    });
+    const jadwal = await jadwalService.create(req.body);
+    ResponseHelper.created(res, { jadwal }, 'Jadwal berhasil ditambahkan');
   });
 
-  createBulk = asyncHandler(async (req: Request, res: Response) => {
-    const { jadwal: jadwalData } = req.body;
-    const result = await jadwalService.createBulk(jadwalData);
-
-    res.status(201).json({
-      status: 'success',
-      data: result,
-    });
+  createMany = asyncHandler(async (req: Request, res: Response) => {
+    const result = await jadwalService.createMany(req.body.items);
+    ResponseHelper.created(res, result, 'Jadwal berhasil ditambahkan');
   });
 
   update = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const data = req.body;
-    const jadwal = await jadwalService.update(id, data);
-
-    res.status(200).json({
-      status: 'success',
-      data: { jadwal },
-    });
+    const jadwal = await jadwalService.update(req.params.id, req.body);
+    ResponseHelper.success(res, { jadwal }, 'Jadwal berhasil diupdate');
   });
 
   delete = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    await jadwalService.delete(id);
-
-    res.status(200).json({
-      status: 'success',
-      message: 'Jadwal berhasil dihapus',
-    });
+    await jadwalService.delete(req.params.id);
+    ResponseHelper.success(res, null, 'Jadwal berhasil dihapus');
   });
 }

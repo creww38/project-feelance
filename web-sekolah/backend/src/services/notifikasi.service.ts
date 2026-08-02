@@ -1,43 +1,63 @@
 // src/services/notifikasi.service.ts
-import { NotifikasiRepository } from '../repositories/notifikasi.repository';
 import prisma from '../config/database';
-
-const notifikasiRepository = new NotifikasiRepository();
+import { PaginationOptions } from '../utils/pagination';
 
 export class NotifikasiService {
-  async getAll(userId: string, options: any) {
+  async getByUser(userId: string, options: PaginationOptions) {
     const page = options.page || 1;
     const limit = options.limit || 20;
-    const where: any = { userId };
 
-    if (options.status) where.status = options.status;
+    const [items, total] = await Promise.all([
+      prisma.notifikasi.findMany({
+        where: { userId },
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.notifikasi.count({ where: { userId } }),
+    ]);
 
-    return notifikasiRepository.findAll({ page, limit }, where);
+    return {
+      items,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
   }
 
   async getUnreadCount(userId: string) {
-    return notifikasiRepository.countUnread(userId);
+    return prisma.notifikasi.count({
+      where: {
+        userId,
+        status: 'UNREAD',
+      },
+    });
   }
 
-  async markAsRead(id: string, userId: string) {
-    return notifikasiRepository.update(id, {
-      status: 'READ',
-      readAt: new Date(),
+  async markAsRead(notifikasiId: string, userId: string) {
+    const notifikasi = await prisma.notifikasi.findUnique({
+      where: { id: notifikasiId },
+    });
+
+    if (!notifikasi) {
+      throw new Error('Notifikasi tidak ditemukan');
+    }
+
+    if (notifikasi.userId !== userId) {
+      throw new Error('Unauthorized');
+    }
+
+    return prisma.notifikasi.update({
+      where: { id: notifikasiId },
+      data: { status: 'READ', readAt: new Date() },
     });
   }
 
   async markAllAsRead(userId: string) {
-    await prisma.notifikasi.updateMany({
+    return prisma.notifikasi.updateMany({
       where: { userId, status: 'UNREAD' },
       data: { status: 'READ', readAt: new Date() },
     });
   }
 
-  async delete(id: string, userId: string) {
-    await notifikasiRepository.delete(id);
-  }
-
-  // Helper to create notification
   async create(data: {
     userId: string;
     judul: string;
@@ -45,6 +65,26 @@ export class NotifikasiService {
     tipe?: string;
     link?: string;
   }) {
-    return prisma.notifikasi.create({ data });
+    return prisma.notifikasi.create({
+      data: {
+        userId: data.userId,
+        judul: data.judul,
+        konten: data.konten,
+        tipe: data.tipe || 'INFO',
+        link: data.link,
+      },
+    });
+  }
+
+  async deleteOld(days: number = 30) {
+    const date = new Date();
+    date.setDate(date.getDate() - days);
+
+    return prisma.notifikasi.deleteMany({
+      where: {
+        createdAt: { lt: date },
+        status: 'READ',
+      },
+    });
   }
 }

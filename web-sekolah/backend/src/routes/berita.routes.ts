@@ -1,47 +1,30 @@
-// src/routes/berita.routes.ts
 import { Router } from 'express';
-import { BeritaController } from '../controllers/berita.controller';
 import { authenticate, optionalAuth } from '../middlewares/auth.middleware';
-import { authorize } from '../middlewares/rbac.middleware';
-import { validate } from '../middlewares/validate.middleware';
-import { beritaSchema } from '../validations/berita.validation';
 
 const router = Router();
-const beritaController = new BeritaController();
 
-// Public routes
-router.get('/', beritaController.getAll);
-router.get('/featured', beritaController.getFeatured);
-router.get('/trending', beritaController.getTrending);
-router.get('/:slug', beritaController.getBySlug);
+// Public - optional auth (untuk like)
+router.get('/', optionalAuth, async (req, res) => {
+  try {
+    const supabase = (await import('../config/supabase')).default;
+    const { data, error } = await supabase
+      .from('berita')
+      .select('*, kategori(id, nama, slug)')
+      .eq('status', 'PUBLISHED')
+      .order('created_at', { ascending: false })
+      .limit(10);
 
-// Protected routes
-router.post(
-  '/',
-  authenticate,
-  authorize('ADMIN', 'GURU', 'STAFF_TU'),
-  validate(beritaSchema),
-  beritaController.create
-);
+    if (error) throw error;
 
-router.put(
-  '/:id',
-  authenticate,
-  authorize('ADMIN', 'GURU', 'STAFF_TU'),
-  beritaController.update
-);
+    res.json({ status: 'success', data: { items: data } });
+  } catch (error: any) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
 
-router.delete(
-  '/:id',
-  authenticate,
-  authorize('ADMIN'),
-  beritaController.delete
-);
-
-router.post(
-  '/:id/like',
-  authenticate,
-  beritaController.like
-);
+// Protected
+router.post('/', authenticate, async (req, res) => {
+  res.json({ status: 'success', message: 'Create berita - coming soon' });
+});
 
 export default router;

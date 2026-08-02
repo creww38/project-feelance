@@ -1,9 +1,8 @@
-// src/controllers/kategori.controller.ts
 import { Request, Response } from 'express';
-import { asyncHandler } from '../utils/asyncHandler';
 import prisma from '../config/database';
+import { asyncHandler } from '../utils/asyncHandler';
+import { ResponseHelper } from '../utils/responseHelper';
 import { AppError } from '../utils/AppError';
-import { generateSlug } from '../utils/slug';
 
 export class KategoriController {
   getAll = asyncHandler(async (req: Request, res: Response) => {
@@ -13,75 +12,29 @@ export class KategoriController {
       },
       orderBy: { nama: 'asc' },
     });
-
-    res.status(200).json({
-      status: 'success',
-      data: { items: kategori },
-    });
+    ResponseHelper.success(res, { kategori });
   });
 
   getById = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
     const kategori = await prisma.kategori.findUnique({
-      where: { id },
+      where: { id: req.params.id },
       include: {
-        berita: {
-          where: { status: 'PUBLISHED' },
-          take: 10,
-          orderBy: { publishedAt: 'desc' },
-          include: {
-            author: { select: { id: true, namaLengkap: true } },
-          },
-        },
         _count: { select: { berita: true } },
       },
     });
-
+    
     if (!kategori) {
       throw new AppError('Kategori tidak ditemukan', 404);
     }
-
-    res.status(200).json({
-      status: 'success',
-      data: { kategori },
-    });
-  });
-
-  getBySlug = asyncHandler(async (req: Request, res: Response) => {
-    const { slug } = req.params;
-    const kategori = await prisma.kategori.findUnique({
-      where: { slug },
-      include: {
-        berita: {
-          where: { status: 'PUBLISHED' },
-          orderBy: { publishedAt: 'desc' },
-          include: {
-            author: { select: { id: true, namaLengkap: true } },
-          },
-        },
-      },
-    });
-
-    if (!kategori) {
-      throw new AppError('Kategori tidak ditemukan', 404);
-    }
-
-    res.status(200).json({
-      status: 'success',
-      data: { kategori },
-    });
+    
+    ResponseHelper.success(res, { kategori });
   });
 
   create = asyncHandler(async (req: Request, res: Response) => {
     const { nama, deskripsi, warna, icon } = req.body;
     
-    if (!nama) {
-      throw new AppError('Nama kategori harus diisi', 400);
-    }
-
-    const slug = generateSlug(nama);
-
-    // Check if slug exists
+    const slug = nama.toLowerCase().replace(/[\s]+/g, '-');
+    
     const existing = await prisma.kategori.findUnique({ where: { slug } });
     if (existing) {
       throw new AppError('Kategori dengan nama tersebut sudah ada', 400);
@@ -91,64 +44,37 @@ export class KategoriController {
       data: { nama, slug, deskripsi, warna, icon },
     });
 
-    res.status(201).json({
-      status: 'success',
-      message: 'Kategori berhasil dibuat',
-      data: { kategori },
-    });
+    ResponseHelper.created(res, { kategori }, 'Kategori berhasil dibuat');
   });
 
   update = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
     const { nama, deskripsi, warna, icon } = req.body;
-
-    const existing = await prisma.kategori.findUnique({ where: { id } });
-    if (!existing) {
-      throw new AppError('Kategori tidak ditemukan', 404);
-    }
-
-    const updateData: any = {};
+    const data: any = { deskripsi, warna, icon };
+    
     if (nama) {
-      updateData.nama = nama;
-      updateData.slug = generateSlug(nama);
+      data.nama = nama;
+      data.slug = nama.toLowerCase().replace(/[\s]+/g, '-');
     }
-    if (deskripsi !== undefined) updateData.deskripsi = deskripsi;
-    if (warna !== undefined) updateData.warna = warna;
-    if (icon !== undefined) updateData.icon = icon;
 
     const kategori = await prisma.kategori.update({
-      where: { id },
-      data: updateData,
+      where: { id: req.params.id },
+      data,
     });
 
-    res.status(200).json({
-      status: 'success',
-      message: 'Kategori berhasil diperbarui',
-      data: { kategori },
-    });
+    ResponseHelper.success(res, { kategori }, 'Kategori berhasil diupdate');
   });
 
   delete = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-
-    const kategori = await prisma.kategori.findUnique({
-      where: { id },
-      include: { _count: { select: { berita: true } } },
+    // Check if category has news
+    const beritaCount = await prisma.berita.count({
+      where: { kategoriId: req.params.id },
     });
 
-    if (!kategori) {
-      throw new AppError('Kategori tidak ditemukan', 404);
+    if (beritaCount > 0) {
+      throw new AppError('Kategori memiliki berita, tidak dapat dihapus', 400);
     }
 
-    if (kategori._count.berita > 0) {
-      throw new AppError('Kategori masih memiliki berita, tidak dapat dihapus', 400);
-    }
-
-    await prisma.kategori.delete({ where: { id } });
-
-    res.status(200).json({
-      status: 'success',
-      message: 'Kategori berhasil dihapus',
-    });
+    await prisma.kategori.delete({ where: { id: req.params.id } });
+    ResponseHelper.success(res, null, 'Kategori berhasil dihapus');
   });
 }

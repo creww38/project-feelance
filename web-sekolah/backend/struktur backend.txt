@@ -1,5 +1,5 @@
 backend/
-├── .env
+├── .env (Sk0lah-DB!2024_)
 ├── .env.example
 ├── .eslintrc.js
 ├── .prettierrc

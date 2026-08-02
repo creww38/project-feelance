@@ -1,92 +1,24 @@
-// src/controllers/search.controller.ts
 import { Request, Response } from 'express';
-import { SearchService } from '../services/search.service';
-import { asyncHandler } from '../utils/asyncHandler';
-
-const searchService = new SearchService();
+import { ResponseHelper } from '../utils/responseHelper';
+import supabase from '../config/supabase';
 
 export class SearchController {
-  global = asyncHandler(async (req: Request, res: Response) => {
-    const { q, type, page, limit } = req.query;
+  globalSearch = async (req: Request, res: Response) => {
+    try {
+      const q = req.query.q as string;
+      if (!q) return ResponseHelper.badRequest(res, 'Query pencarian harus diisi');
 
-    if (!q || (q as string).trim().length === 0) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Query pencarian tidak boleh kosong',
+      const [berita, users] = await Promise.all([
+        supabase.from('berita').select('id, judul, slug, ringkasan').ilike('judul', `%${q}%`).limit(5),
+        supabase.from('users').select('id, nama_lengkap, email, foto').ilike('nama_lengkap', `%${q}%`).limit(5),
+      ]);
+
+      return ResponseHelper.success(res, {
+        berita: berita.data || [],
+        users: users.data || [],
       });
+    } catch (error: any) {
+      return ResponseHelper.error(res, error.message);
     }
-
-    const results = await searchService.globalSearch(
-      q as string,
-      type as string,
-      {
-        page: page ? parseInt(page as string) : 1,
-        limit: limit ? parseInt(limit as string) : 10,
-      }
-    );
-
-    res.status(200).json({
-      status: 'success',
-      data: results,
-    });
-  });
-
-  autocomplete = asyncHandler(async (req: Request, res: Response) => {
-    const { q } = req.query;
-
-    if (!q || (q as string).trim().length < 2) {
-      return res.status(200).json({
-        status: 'success',
-        data: { suggestions: [] },
-      });
-    }
-
-    const suggestions = await searchService.autocomplete(q as string);
-
-    res.status(200).json({
-      status: 'success',
-      data: { suggestions },
-    });
-  });
-
-  searchBerita = asyncHandler(async (req: Request, res: Response) => {
-    const { q, kategori, page, limit } = req.query;
-    const results = await searchService.searchBerita(q as string, {
-      kategori: kategori as string,
-      page: page ? parseInt(page as string) : 1,
-      limit: limit ? parseInt(limit as string) : 10,
-    });
-
-    res.status(200).json({
-      status: 'success',
-      data: results,
-    });
-  });
-
-  searchSiswa = asyncHandler(async (req: Request, res: Response) => {
-    const { q, kelasId, page, limit } = req.query;
-    const results = await searchService.searchSiswa(q as string, {
-      kelasId: kelasId as string,
-      page: page ? parseInt(page as string) : 1,
-      limit: limit ? parseInt(limit as string) : 10,
-    });
-
-    res.status(200).json({
-      status: 'success',
-      data: results,
-    });
-  });
-
-  searchGuru = asyncHandler(async (req: Request, res: Response) => {
-    const { q, page, limit } = req.query;
-    const results = await searchService.searchGuru(q as string, {
-      page: page ? parseInt(page as string) : 1,
-      limit: limit ? parseInt(limit as string) : 10,
-    });
-
-    res.status(200).json({
-      status: 'success',
-      data: results,
-    });
-  });
+  };
 }

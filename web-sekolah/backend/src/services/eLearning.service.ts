@@ -1,138 +1,256 @@
 // src/services/eLearning.service.ts
-import { MateriRepository } from '../repositories/materi.repository';
-import { TugasRepository } from '../repositories/tugas.repository';
-import { AppError } from '../utils/AppError';
-import { uploadToCloudinary } from '../config/cloudinary';
 import prisma from '../config/database';
-import fs from 'fs/promises';
-
-const materiRepository = new MateriRepository();
-const tugasRepository = new TugasRepository();
+import { AppError } from '../utils/AppError';
+import { PaginationOptions } from '../utils/pagination';
 
 export class ELearningService {
-  // Materi
-  async getAllMateri(filters: any) {
+  // MATERI
+  async getMateri(options: PaginationOptions, filters: any) {
     const where: any = {};
-    if (filters.mataPelajaranId) where.mataPelajaranId = filters.mataPelajaranId;
-    if (filters.kelasId) where.kelasId = filters.kelasId;
-    if (filters.search) {
-      where.OR = [
-        { judul: { contains: filters.search, mode: 'insensitive' } },
-      ];
+
+    if (filters.mataPelajaranId) {
+      where.mataPelajaranId = filters.mataPelajaranId;
     }
-    return materiRepository.findAll(where);
+
+    if (filters.guruId) {
+      where.guruId = filters.guruId;
+    }
+
+    if (filters.kelasId) {
+      where.kelasId = filters.kelasId;
+    }
+
+    if (filters.search) {
+      where.judul = { contains: filters.search, mode: 'insensitive' };
+    }
+
+    const page = options.page || 1;
+    const limit = options.limit || 10;
+
+    const [items, total] = await Promise.all([
+      prisma.materi.findMany({
+        where,
+        include: {
+          mataPelajaran: { select: { nama: true } },
+          guru: {
+            include: { user: { select: { namaLengkap: true } } },
+          },
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.materi.count({ where }),
+    ]);
+
+    return {
+      items,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
   }
 
   async getMateriById(id: string) {
-    const materi = await materiRepository.findById(id);
-    if (!materi) throw new AppError('Materi tidak ditemukan', 404);
+    const materi = await prisma.materi.findUnique({
+      where: { id },
+      include: {
+        mataPelajaran: true,
+        guru: {
+          include: { user: { select: { namaLengkap: true } } },
+        },
+      },
+    });
+
+    if (!materi) {
+      throw new AppError('Materi tidak ditemukan', 404);
+    }
+
     return materi;
   }
 
-  async createMateri(data: any, file?: Express.Multer.File, userId?: string) {
-    let fileUrl = null;
-    if (file) {
-      if (process.env.CLOUDINARY_CLOUD_NAME) {
-        const result = await uploadToCloudinary(file.path, 'materi');
-        fileUrl = result.secure_url;
-        await fs.unlink(file.path);
-      } else {
-        fileUrl = `/uploads/documents/${file.filename}`;
-      }
-    }
-
-    const guru = await prisma.guru.findUnique({ where: { userId } });
-    return materiRepository.create({
-      ...data,
-      fileUrl,
-      guruId: guru?.id,
-    });
+  async createMateri(data: any) {
+    return prisma.materi.create({ data });
   }
 
-  async updateMateri(id: string, data: any, file?: Express.Multer.File) {
-    const updateData: any = { ...data };
-    if (file) {
-      if (process.env.CLOUDINARY_CLOUD_NAME) {
-        const result = await uploadToCloudinary(file.path, 'materi');
-        updateData.fileUrl = result.secure_url;
-        await fs.unlink(file.path);
-      } else {
-        updateData.fileUrl = `/uploads/documents/${file.filename}`;
-      }
+  async updateMateri(id: string, data: any) {
+    const existing = await prisma.materi.findUnique({ where: { id } });
+    if (!existing) {
+      throw new AppError('Materi tidak ditemukan', 404);
     }
-    return materiRepository.update(id, updateData);
+
+    return prisma.materi.update({ where: { id }, data });
   }
 
   async deleteMateri(id: string) {
-    await materiRepository.delete(id);
+    const existing = await prisma.materi.findUnique({ where: { id } });
+    if (!existing) {
+      throw new AppError('Materi tidak ditemukan', 404);
+    }
+
+    return prisma.materi.delete({ where: { id } });
   }
 
-  // Tugas
-  async getAllTugas(filters: any) {
+  // TUGAS
+  async getTugas(options: PaginationOptions, filters: any) {
     const where: any = {};
-    if (filters.mataPelajaranId) where.mataPelajaranId = filters.mataPelajaranId;
-    if (filters.kelasId) where.kelasId = filters.kelasId;
-    return tugasRepository.findAll(where);
+
+    if (filters.mataPelajaranId) {
+      where.mataPelajaranId = filters.mataPelajaranId;
+    }
+
+    if (filters.guruId) {
+      where.guruId = filters.guruId;
+    }
+
+    if (filters.kelasId) {
+      where.kelasId = filters.kelasId;
+    }
+
+    const page = options.page || 1;
+    const limit = options.limit || 10;
+
+    const [items, total] = await Promise.all([
+      prisma.tugas.findMany({
+        where,
+        include: {
+          mataPelajaran: { select: { nama: true } },
+          guru: {
+            include: { user: { select: { namaLengkap: true } } },
+          },
+          _count: { select: { jawaban: true } },
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.tugas.count({ where }),
+    ]);
+
+    return {
+      items,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
   }
 
   async getTugasById(id: string) {
-    const tugas = await tugasRepository.findById(id);
-    if (!tugas) throw new AppError('Tugas tidak ditemukan', 404);
+    const tugas = await prisma.tugas.findUnique({
+      where: { id },
+      include: {
+        mataPelajaran: true,
+        guru: {
+          include: { user: { select: { namaLengkap: true } } },
+        },
+        jawaban: {
+          include: {
+            siswa: {
+              include: { user: { select: { namaLengkap: true } } },
+            },
+          },
+        },
+      },
+    });
+
+    if (!tugas) {
+      throw new AppError('Tugas tidak ditemukan', 404);
+    }
+
     return tugas;
   }
 
-  async createTugas(data: any, file?: Express.Multer.File, userId?: string) {
-    const guru = await prisma.guru.findUnique({ where: { userId } });
-    return tugasRepository.create({
-      ...data,
-      deadline: new Date(data.deadline),
-      guruId: guru?.id,
-      fileUrl: file?.path ? `/uploads/documents/${file.filename}` : null,
-    });
+  async createTugas(data: any) {
+    return prisma.tugas.create({ data });
   }
 
-  async updateTugas(id: string, data: any, file?: Express.Multer.File) {
-    const updateData: any = { ...data };
-    if (data.deadline) updateData.deadline = new Date(data.deadline);
-    if (file) updateData.fileUrl = `/uploads/documents/${file.filename}`;
-    return tugasRepository.update(id, updateData);
+  async updateTugas(id: string, data: any) {
+    const existing = await prisma.tugas.findUnique({ where: { id } });
+    if (!existing) {
+      throw new AppError('Tugas tidak ditemukan', 404);
+    }
+
+    return prisma.tugas.update({ where: { id }, data });
   }
 
   async deleteTugas(id: string) {
-    await tugasRepository.delete(id);
+    const existing = await prisma.tugas.findUnique({ where: { id } });
+    if (!existing) {
+      throw new AppError('Tugas tidak ditemukan', 404);
+    }
+
+    return prisma.tugas.delete({ where: { id } });
   }
 
-  async submitJawaban(tugasId: string, data: any, file?: Express.Multer.File, userId?: string) {
-    const siswa = await prisma.siswa.findUnique({ where: { userId } });
-    if (!siswa) throw new AppError('Siswa tidak ditemukan', 404);
+  // JAWABAN TUGAS
+  async submitJawaban(tugasId: string, siswaId: string, data: any) {
+    // Check if tugas exists and not past deadline
+    const tugas = await prisma.tugas.findUnique({
+      where: { id: tugasId },
+      include: {
+        jawaban: {
+          where: { siswaId },
+        },
+      },
+    });
 
-    const tugas = await tugasRepository.findById(tugasId);
-    if (!tugas) throw new AppError('Tugas tidak ditemukan', 404);
+    if (!tugas) {
+      throw new AppError('Tugas tidak ditemukan', 404);
+    }
 
     if (new Date() > tugas.deadline) {
       throw new AppError('Tugas sudah melewati deadline', 400);
     }
 
+    if (tugas.jawaban.length > 0) {
+      return prisma.jawabanTugas.update({
+        where: { id: tugas.jawaban[0].id },
+        data: {
+          konten: data.konten,
+          fileUrl: data.fileUrl,
+          status: 'SUBMITTED',
+          submittedAt: new Date(),
+        },
+      });
+    }
+
     return prisma.jawabanTugas.create({
       data: {
         tugasId,
-        siswaId: siswa.id,
+        siswaId,
         konten: data.konten,
-        fileUrl: file?.path ? `/uploads/documents/${file.filename}` : null,
+        fileUrl: data.fileUrl,
         status: 'SUBMITTED',
+        submittedAt: new Date(),
       },
     });
   }
 
-  async gradeJawaban(jawabanId: string, nilai: number, komentar?: string) {
+  async nilaiJawaban(jawabanId: string, data: { nilai: number; komentar?: string }) {
+    const jawaban = await prisma.jawabanTugas.findUnique({
+      where: { id: jawabanId },
+    });
+
+    if (!jawaban) {
+      throw new AppError('Jawaban tidak ditemukan', 404);
+    }
+
     return prisma.jawabanTugas.update({
       where: { id: jawabanId },
       data: {
-        nilai,
-        komentar,
+        nilai: data.nilai,
+        komentar: data.komentar,
         status: 'GRADED',
         gradedAt: new Date(),
       },
+    });
+  }
+
+  async getJawabanByTugas(tugasId: string) {
+    return prisma.jawabanTugas.findMany({
+      where: { tugasId },
+      include: {
+        siswa: {
+          include: { user: { select: { namaLengkap: true, foto: true } } },
+        },
+      },
+      orderBy: { submittedAt: 'asc' },
     });
   }
 }

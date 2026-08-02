@@ -1,97 +1,105 @@
-// src/services/nilai.service.ts
 import { NilaiRepository } from '../repositories/nilai.repository';
 import { AppError } from '../utils/AppError';
-import prisma from '../config/database';
+import { PaginationOptions } from '../utils/pagination';
 
 const nilaiRepository = new NilaiRepository();
 
 export class NilaiService {
-  async getBySiswa(siswaId: string, semester?: number) {
-    return nilaiRepository.findBySiswa(siswaId, semester);
+  async getAll(options: PaginationOptions, filters: any) {
+    const where: any = {};
+
+    if (filters.siswaId) {
+      where.siswaId = filters.siswaId;
+    }
+
+    if (filters.mataPelajaranId) {
+      where.mataPelajaranId = filters.mataPelajaranId;
+    }
+
+    if (filters.semester) {
+      where.semester = parseInt(filters.semester);
+    }
+
+    return nilaiRepository.findAll(options, where);
   }
 
-  async getByKelas(kelasId: string, mataPelajaranId: string, semester?: number) {
-    return nilaiRepository.findByKelas(kelasId, mataPelajaranId, semester);
+  async getById(id: string) {
+    const nilai = await nilaiRepository.findById(id);
+    if (!nilai) {
+      throw new AppError('Nilai tidak ditemukan', 404);
+    }
+    return nilai;
   }
 
-  async input(data: any, userId: string) {
-    const nilaiAkhir = this.calculateNilaiAkhir(
-      data.nilaiTugas,
-      data.nilaiUTS,
-      data.nilaiUAS
+  async getBySiswa(siswaId: string) {
+    return nilaiRepository.findBySiswa(siswaId);
+  }
+
+  async create(data: any) {
+    // Check if already exists
+    const existing = await nilaiRepository.findBySiswaMapel(
+      data.siswaId,
+      data.mataPelajaranId,
+      data.semester
     );
 
-    return nilaiRepository.create({
-      ...data,
-      nilaiAkhir,
-      grade: this.getGrade(nilaiAkhir),
-      predikat: this.getPredikat(nilaiAkhir),
-    });
-  }
-
-  async inputBulk(nilaiData: any[]) {
-    const results = [];
-    for (const data of nilaiData) {
-      const nilai = await this.input(data, '');
-      results.push(nilai);
+    if (existing) {
+      throw new AppError('Nilai untuk mata pelajaran dan semester ini sudah ada', 400);
     }
-    return results;
+
+    return nilaiRepository.create(data);
   }
 
   async update(id: string, data: any) {
-    const nilaiAkhir = this.calculateNilaiAkhir(
-      data.nilaiTugas,
-      data.nilaiUTS,
-      data.nilaiUAS
-    );
+    const existing = await nilaiRepository.findById(id);
+    if (!existing) {
+      throw new AppError('Nilai tidak ditemukan', 404);
+    }
 
-    return nilaiRepository.update(id, {
-      ...data,
-      nilaiAkhir,
-      grade: this.getGrade(nilaiAkhir),
-      predikat: this.getPredikat(nilaiAkhir),
-    });
+    return nilaiRepository.update(id, data);
   }
 
-  async getRapor(siswaId: string, semester?: number) {
-    const nilai = await this.getBySiswa(siswaId, semester);
-    const siswa = await prisma.siswa.findUnique({
-      where: { id: siswaId },
-      include: { user: true, kelas: { include: { jurusan: true } } },
-    });
+  async delete(id: string) {
+    const existing = await nilaiRepository.findById(id);
+    if (!existing) {
+      throw new AppError('Nilai tidak ditemukan', 404);
+    }
 
-    return {
-      siswa,
-      nilai,
-      semester,
-    };
+    await nilaiRepository.delete(id);
+    return { message: 'Nilai berhasil dihapus' };
   }
 
-  async exportRaporPDF(siswaId: string, semester?: number) {
-    // PDF generation placeholder
-    return Buffer.from('Rapor PDF placeholder');
+  async getRekapKelas(kelasId: string, semester: number) {
+    return nilaiRepository.getRekapKelas(kelasId, semester);
   }
 
-  private calculateNilaiAkhir(tugas?: number, uts?: number, uas?: number): number {
-    const tugasVal = tugas || 0;
-    const utsVal = uts || 0;
-    const uasVal = uas || 0;
-    return Math.round((tugasVal * 0.3 + utsVal * 0.3 + uasVal * 0.4) * 100) / 100;
-  }
+  async importNilai(items: any[]) {
+    const results = { success: 0, failed: 0, errors: [] as any[] };
 
-  private getGrade(nilai: number): string {
-    if (nilai >= 90) return 'A';
-    if (nilai >= 80) return 'B';
-    if (nilai >= 70) return 'C';
-    if (nilai >= 60) return 'D';
-    return 'E';
-  }
+    for (const item of items) {
+      try {
+        const existing = await nilaiRepository.findBySiswaMapel(
+          item.siswaId,
+          item.mataPelajaranId,
+          item.semester
+        );
 
-  private getPredikat(nilai: number): string {
-    if (nilai >= 90) return 'Sangat Baik';
-    if (nilai >= 80) return 'Baik';
-    if (nilai >= 70) return 'Cukup';
-    if (nilai >= 60) return 'Kurang';
-    return 'Sangat Kurang';
+        if (existing) {
+          await nilaiRepository.update(existing.id, item);
+        } else {
+          await nilaiRepository.create(item);
+        }
+
+        results.success++;
+      } catch (error: any) {
+        results.failed++;
+        results.errors.push({
+          siswaId: item.siswaId,
+          error: error.message,
+        });
+      }
+    }
+
+    return results;
   }
 }

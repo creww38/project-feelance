@@ -1,69 +1,113 @@
-// prisma/seed-data/users.ts
+import { PrismaClient, RoleType } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
-export const userData = [
+const prisma = new PrismaClient();
+
+export interface SeedUser {
+  email: string;
+  username: string;
+  password: string;
+  namaLengkap: string;
+  role: RoleType;
+  isActive: boolean;
+}
+
+export const seedUsers: SeedUser[] = [
+  {
+    email: 'admin@smansa.sch.id',
+    username: 'admin',
+    password: 'Admin123!',
+    namaLengkap: 'Administrator Utama',
+    role: 'ADMIN',
+    isActive: true,
+  },
   {
     email: 'kepsek@smansa.sch.id',
     username: 'kepsek',
-    password: bcrypt.hashSync('Kepsek123!', 12),
-    namaLengkap: 'Dr. Ahmad Fauzi, M.Pd',
-    noTelp: '081234567890',
-    role: 'KEPALA_SEKOLAH' as const,
+    password: 'Kepsek123!',
+    namaLengkap: 'Dr. H. Ahmad Fauzi, M.Pd',
+    role: 'KEPALA_SEKOLAH',
+    isActive: true,
   },
   {
     email: 'guru.matematika@smansa.sch.id',
     username: 'guru_matematika',
-    password: bcrypt.hashSync('Guru123!', 12),
-    namaLengkap: 'Siti Aminah, S.Pd',
-    noTelp: '081234567891',
-    role: 'GURU' as const,
+    password: 'Guru123!',
+    namaLengkap: 'Dra. Siti Nurhaliza, M.Si',
+    role: 'GURU',
+    isActive: true,
   },
   {
     email: 'guru.bahasa@smansa.sch.id',
     username: 'guru_bahasa',
-    password: bcrypt.hashSync('Guru123!', 12),
-    namaLengkap: 'Budi Santoso, S.Pd',
-    noTelp: '081234567892',
-    role: 'GURU' as const,
+    password: 'Guru123!',
+    namaLengkap: 'Drs. Budi Santoso, M.Pd',
+    role: 'GURU',
+    isActive: true,
   },
   {
-    email: 'staff.tu@smansa.sch.id',
+    email: 'staff@smansa.sch.id',
     username: 'staff_tu',
-    password: bcrypt.hashSync('Staff123!', 12),
-    namaLengkap: 'Dewi Sartika',
-    noTelp: '081234567893',
-    role: 'STAFF_TU' as const,
+    password: 'Staff123!',
+    namaLengkap: 'Rina Anggraeni, S.Kom',
+    role: 'STAFF_TU',
+    isActive: true,
   },
   {
-    email: 'siswa1@smansa.sch.id',
-    username: 'siswa1',
-    password: bcrypt.hashSync('Siswa123!', 12),
+    email: 'siswa.contoh@smansa.sch.id',
+    username: 'siswa_contoh',
+    password: 'Siswa123!',
     namaLengkap: 'Andi Pratama',
-    noTelp: '081234567894',
-    role: 'SISWA' as const,
+    role: 'SISWA',
+    isActive: true,
   },
   {
-    email: 'siswa2@smansa.sch.id',
-    username: 'siswa2',
-    password: bcrypt.hashSync('Siswa123!', 12),
-    namaLengkap: 'Rina Anggraini',
-    noTelp: '081234567895',
-    role: 'SISWA' as const,
-  },
-  {
-    email: 'ortu.siswa1@smansa.sch.id',
-    username: 'ortu_siswa1',
-    password: bcrypt.hashSync('Ortu123!', 12),
-    namaLengkap: 'Bapak Pratama',
-    noTelp: '081234567896',
-    role: 'ORANG_TUA' as const,
-  },
-  {
-    email: 'ortu.siswa2@smansa.sch.id',
-    username: 'ortu_siswa2',
-    password: bcrypt.hashSync('Ortu123!', 12),
-    namaLengkap: 'Ibu Anggraini',
-    noTelp: '081234567897',
-    role: 'ORANG_TUA' as const,
+    email: 'orangtua.contoh@smansa.sch.id',
+    username: 'orangtua_contoh',
+    password: 'Ortu123!',
+    namaLengkap: 'Bapak Supriyadi',
+    role: 'ORANG_TUA',
+    isActive: true,
   },
 ];
+
+export async function createSeedUsers(): Promise<void> {
+  console.log('📝 Creating seed users...');
+
+  for (const userData of seedUsers) {
+    const hashedPassword = await bcrypt.hash(userData.password, 12);
+
+    const existingUser = await prisma.user.findUnique({
+      where: { email: userData.email },
+    });
+
+    if (!existingUser) {
+      // Find or create the role
+      const role = await prisma.role.findUnique({
+        where: { nama: userData.role },
+      });
+
+      if (role) {
+        await prisma.user.create({
+          data: {
+            email: userData.email,
+            username: userData.username,
+            password: hashedPassword,
+            namaLengkap: userData.namaLengkap,
+            isActive: userData.isActive,
+            userRoles: {
+              create: {
+                roleId: role.id,
+              },
+            },
+          },
+        });
+        console.log(`  ✅ Created user: ${userData.email} (${userData.role})`);
+      }
+    } else {
+      console.log(`  ⏭️  User already exists: ${userData.email}`);
+    }
+  }
+}
+
+export default seedUsers;

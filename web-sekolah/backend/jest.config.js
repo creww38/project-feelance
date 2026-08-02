@@ -1,11 +1,10 @@
-// backend/jest.config.js
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
   testMatch: [
     '**/__tests__/**/*.ts',
-    '**/?(*.)+(spec|test).ts'
+    '**/?(*.)+(spec|test).ts',
   ],
   transform: {
     '^.+\\.ts$': 'ts-jest',
@@ -21,10 +20,12 @@ module.exports = {
     '^@validations/(.*)$': '<rootDir>/src/validations/$1',
   },
   setupFilesAfterSetup: ['<rootDir>/src/__tests__/setup.ts'],
+  coverageDirectory: 'coverage',
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.d.ts',
-    '!src/__tests__/**',
+    '!src/**/*.test.ts',
+    '!src/**/__tests__/**',
   ],
   coverageThreshold: {
     global: {

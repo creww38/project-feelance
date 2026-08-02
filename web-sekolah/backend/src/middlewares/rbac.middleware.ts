@@ -1,52 +1,60 @@
-// src/middlewares/rbac.middleware.ts
 import { Request, Response, NextFunction } from 'express';
-import { AppError } from '../utils/AppError';
 
+/**
+ * Role-based authorization
+ * Usage: router.get('/path', authenticate, authorize('ADMIN', 'GURU'), handler)
+ */
 export const authorize = (...roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user) {
-      throw new AppError('Silakan login terlebih dahulu', 401);
+    const user = (req as any).user;
+
+    if (!user) {
+      return res.status(401).json({ status: 'error', message: 'Silakan login terlebih dahulu' });
     }
 
-    const userRoles = req.user.userRoles.map((ur) => ur.role.nama);
+    const userRoles = user.userRoles?.map((ur: any) => ur.role?.nama) || [];
 
-    const hasRole = roles.some((role) => userRoles.includes(role as any));
+    const hasRole = roles.some((role) => userRoles.includes(role));
 
     if (!hasRole) {
-      throw new AppError(
-        'Anda tidak memiliki izin untuk mengakses resource ini',
-        403
-      );
+      return res.status(403).json({ status: 'error', message: 'Anda tidak memiliki izin untuk mengakses resource ini' });
     }
 
     next();
   };
 };
 
+/**
+ * Permission-based authorization
+ * Usage: router.get('/path', authenticate, checkPermission('berita', 'CREATE'), handler)
+ */
 export const checkPermission = (resource: string, action: string) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user) {
-      throw new AppError('Silakan login terlebih dahulu', 401);
+    const user = (req as any).user;
+
+    if (!user) {
+      return res.status(401).json({ status: 'error', message: 'Silakan login terlebih dahulu' });
     }
 
     // Admin has all permissions
-    if (req.user.userRoles.some((ur) => ur.role.nama === 'ADMIN')) {
+    const userRoles = user.userRoles?.map((ur: any) => ur.role?.nama) || [];
+    if (userRoles.includes('ADMIN')) {
       return next();
     }
 
-    const hasPermission = req.user.userRoles.some((userRole) =>
-      userRole.role.rolePermissions.some(
-        (rp) =>
-          rp.permission.resource === resource &&
-          rp.permission.action === action
+    // Check specific permission
+    const hasPermission = user.userRoles?.some((userRole: any) =>
+      userRole.role?.rolePermissions?.some(
+        (rp: any) =>
+          rp.permission?.resource === resource && rp.permission?.action === action
       )
     );
 
     if (!hasPermission) {
-      throw new AppError(
-        `Anda tidak memiliki izin ${action} untuk ${resource}`,
-        403
-      );
+      return res.status(403).json({
+        status: 'error',
+        message: `Anda tidak memiliki izin ${action} untuk ${resource}`,
+      });
     }
 
     next();

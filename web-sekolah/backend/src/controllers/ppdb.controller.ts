@@ -1,155 +1,98 @@
-// src/controllers/ppdb.controller.ts
 import { Request, Response } from 'express';
-import { PPDBService } from '../services/ppdb.service';
-import { asyncHandler } from '../utils/asyncHandler';
-import { paginationSchema } from '../validations/common.validation';
-import { AppError } from '../utils/AppError';
-
-const ppdbService = new PPDBService();
+import { ResponseHelper } from '../utils/responseHelper';
+import supabase from '../config/supabase';
 
 export class PPDBController {
-  // ========== PUBLIC ==========
+  // Public - Create pendaftaran
+  create = async (req: Request, res: Response) => {
+    try {
+      const noPendaftaran = 'PPDB' + Date.now().toString().slice(-6);
 
-  getInfo = asyncHandler(async (req: Request, res: Response) => {
-    const info = await ppdbService.getInfo();
+      const { data, error } = await supabase
+        .from('ppdb')
+        .insert({
+          no_pendaftaran: noPendaftaran,
+          nama_lengkap: req.body.namaLengkap,
+          nisn: req.body.nisn,
+          jenis_kelamin: req.body.jenisKelamin,
+          tempat_lahir: req.body.tempatLahir,
+          tanggal_lahir: req.body.tanggalLahir,
+          alamat: req.body.alamat,
+          no_telp: req.body.noTelp,
+          asal_sekolah: req.body.asalSekolah,
+          nama_ortu: req.body.namaOrtu,
+          no_telp_ortu: req.body.noTelpOrtu,
+          jurusan_id: req.body.jurusanId,
+          status: 'DRAFT',
+        })
+        .select()
+        .single();
 
-    res.status(200).json({
-      status: 'success',
-      data: info,
-    });
-  });
+      if (error) throw error;
 
-  register = asyncHandler(async (req: Request, res: Response) => {
-    const data = req.body;
-    const files = req.files as Express.Multer.File[];
-
-    if (!data.namaLengkap || !data.jurusanId) {
-      throw new AppError('Nama lengkap dan jurusan harus diisi', 400);
+      return ResponseHelper.created(res, { ppdb: data }, 'Pendaftaran berhasil');
+    } catch (error: any) {
+      return ResponseHelper.error(res, error.message);
     }
+  };
 
-    const pendaftaran = await ppdbService.register(data, files || []);
+  // Public - Check status
+  getByNoPendaftaran = async (req: Request, res: Response) => {
+    try {
+      const { data, error } = await supabase
+        .from('ppdb')
+        .select('*, jurusan:jurusan(id, nama)')
+        .eq('no_pendaftaran', req.params.noPendaftaran)
+        .single();
 
-    res.status(201).json({
-      status: 'success',
-      message: 'Pendaftaran berhasil! Silakan catat nomor pendaftaran Anda.',
-      data: {
-        noPendaftaran: pendaftaran.noPendaftaran,
-        nama: pendaftaran.namaLengkap,
-      },
-    });
-  });
+      if (error || !data) {
+        return ResponseHelper.notFound(res, 'Data pendaftaran tidak ditemukan');
+      }
 
-  checkStatus = asyncHandler(async (req: Request, res: Response) => {
-    const { noPendaftaran } = req.params;
-    const status = await ppdbService.checkStatus(noPendaftaran);
-
-    res.status(200).json({
-      status: 'success',
-      data: status,
-    });
-  });
-
-  // ========== ADMIN ==========
-
-  getAll = asyncHandler(async (req: Request, res: Response) => {
-    const query = paginationSchema.parse(req.query);
-    const filters = {
-      search: req.query.search as string,
-      status: req.query.status as string,
-      jurusanId: req.query.jurusanId as string,
-      tahunAjaranId: req.query.tahunAjaranId as string,
-    };
-
-    const result = await ppdbService.getAll(query, filters);
-
-    res.status(200).json({
-      status: 'success',
-      data: result,
-    });
-  });
-
-  getById = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const pendaftaran = await ppdbService.getById(id);
-
-    res.status(200).json({
-      status: 'success',
-      data: { pendaftaran },
-    });
-  });
-
-  updateStatus = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const { status, catatan } = req.body;
-
-    if (!status) {
-      throw new AppError('Status harus diisi', 400);
+      return ResponseHelper.success(res, { ppdb: data });
+    } catch (error: any) {
+      return ResponseHelper.error(res, error.message);
     }
+  };
 
-    const pendaftaran = await ppdbService.updateStatus(
-      id,
-      status,
-      req.user!.id,
-      catatan
-    );
+  // Admin - Get all
+  getAll = async (req: Request, res: Response) => {
+    try {
+      const { data, error } = await supabase
+        .from('ppdb')
+        .select('*, jurusan:jurusan(id, nama)')
+        .order('created_at', { ascending: false });
 
-    res.status(200).json({
-      status: 'success',
-      message: 'Status pendaftaran berhasil diperbarui',
-      data: { pendaftaran },
-    });
-  });
+      if (error) throw error;
 
-  updateBulkStatus = asyncHandler(async (req: Request, res: Response) => {
-    const { ids, status, catatan } = req.body;
-    const result = await ppdbService.updateBulkStatus(ids, status, req.user!.id, catatan);
+      return ResponseHelper.success(res, { items: data || [] });
+    } catch (error: any) {
+      return ResponseHelper.error(res, error.message);
+    }
+  };
 
-    res.status(200).json({
-      status: 'success',
-      message: `${result.count} pendaftaran berhasil diperbarui`,
-      data: result,
-    });
-  });
+  // Admin - Verify
+  verify = async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user?.id;
 
-  verifyBerkas = asyncHandler(async (req: Request, res: Response) => {
-    const { id, berkasId } = req.params;
-    const { isVerified, catatan } = req.body;
-    const berkas = await ppdbService.verifyBerkas(berkasId, isVerified, catatan);
+      const { data, error } = await supabase
+        .from('ppdb')
+        .update({
+          status: req.body.status,
+          catatan: req.body.catatan,
+          verified_by: userId,
+          verified_at: new Date().toISOString(),
+        })
+        .eq('id', req.params.id)
+        .select()
+        .single();
 
-    res.status(200).json({
-      status: 'success',
-      message: 'Berkas berhasil diverifikasi',
-      data: { berkas },
-    });
-  });
+      if (error) throw error;
 
-  exportExcel = asyncHandler(async (req: Request, res: Response) => {
-    const buffer = await ppdbService.exportExcel(req.query);
-
-    res.setHeader(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    );
-    res.setHeader('Content-Disposition', 'attachment; filename=data-ppdb.xlsx');
-    res.send(buffer);
-  });
-
-  getStats = asyncHandler(async (req: Request, res: Response) => {
-    const stats = await ppdbService.getStats();
-
-    res.status(200).json({
-      status: 'success',
-      data: stats,
-    });
-  });
-
-  getCetakBukti = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const bukti = await ppdbService.getCetakBukti(id);
-
-    res.status(200).json({
-      status: 'success',
-      data: bukti,
-    });
-  });
+      return ResponseHelper.success(res, { ppdb: data }, 'Status berhasil diupdate');
+    } catch (error: any) {
+      return ResponseHelper.error(res, error.message);
+    }
+  };
 }

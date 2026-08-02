@@ -1,24 +1,81 @@
 // src/services/absensi.service.ts
-import { AbsensiRepository } from '../repositories/absensi.repository';
-import { AppError } from '../utils/AppError';
 import prisma from '../config/database';
+import { AppError } from '../utils/AppError';
+import { PaginationOptions, paginate } from '../utils/pagination';
 import QRCode from 'qrcode';
-import { v4 as uuidv4 } from 'uuid';
-
-const absensiRepository = new AbsensiRepository();
+import { addHours, startOfDay, endOfDay, startOfMonth, endOfMonth } from 'date-fns';
 
 export class AbsensiService {
-  async getByDate(kelasId: string, tanggal: Date) {
-    const siswa = await prisma.siswa.findMany({
-      where: { kelasId, status: 'AKTIF' },
+  async getBySiswa(siswaId: string, options: PaginationOptions, filters: any) {
+    const where: any = { siswaId };
+
+    if (filters.tanggal) {
+      const date = new Date(filters.tanggal);
+      where.tanggal = {
+        gte: startOfDay(date),
+        lte: endOfDay(date),
+      };
+    }
+
+    if (filters.bulan) {
+      const [year, month] = filters.bulan.split('-');
+      const date = new Date(parseInt(year), parseInt(month) - 1);
+      where.tanggal = {
+        gte: startOfMonth(date),
+        lte: endOfMonth(date),
+      };
+    }
+
+    if (filters.status) {
+      where.status = filters.status;
+    }
+
+    return prisma.absensi.findMany({
+      where,
       include: {
-        user: { select: { id: true, namaLengkap: true } },
+        siswa: {
+          select: {
+            nis: true,
+            user: {
+              select: {
+                namaLengkap: true,
+                foto: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { tanggal: 'desc' },
+      skip: ((options.page || 1) - 1) * (options.limit || 10),
+      take: options.limit || 10,
+    });
+  }
+
+  async getByKelas(kelasId: string, tanggal: string) {
+    const date = new Date(tanggal);
+
+    const siswa = await prisma.siswa.findMany({
+      where: { kelasId },
+      select: {
+        id: true,
+        nis: true,
+        user: {
+          select: {
+            namaLengkap: true,
+            foto: true,
+          },
+        },
         absensi: {
           where: {
             tanggal: {
-              gte: new Date(tanggal.setHours(0, 0, 0, 0)),
-              lt: new Date(tanggal.setHours(23, 59, 59, 999)),
+              gte: startOfDay(date),
+              lte: endOfDay(date),
             },
+          },
+          select: {
+            id: true,
+            status: true,
+            keterangan: true,
           },
         },
       },
@@ -26,95 +83,164 @@ export class AbsensiService {
 
     return siswa.map((s) => ({
       siswaId: s.id,
-      nama: s.user.namaLengkap,
       nis: s.nis,
+      nama: s.user.namaLengkap,
+      foto: s.user.foto,
       absensi: s.absensi[0] || null,
     }));
   }
 
-  async record(data: any, userId: string) {
-    return absensiRepository.create({
-      ...data,
-      tanggal: data.tanggal ? new Date(data.tanggal) : new Date(),
-    });
-  }
+  async record(siswaId: string, data: { status: string; keterangan?: string }) {
+    const today = new Date();
 
-  async recordBulk(absensiData: any[]) {
-    const results = [];
-    for (const data of absensiData) {
-      const record = await absensiRepository.create({
-        ...data,
-        tanggal: new Date(),
-      });
-      results.push(record);
-    }
-    return results;
-  }
-
-  async getBySiswa(siswaId: string, bulan?: number, tahun?: number) {
-    const now = new Date();
-    const targetMonth = bulan || now.getMonth() + 1;
-    const targetYear = tahun || now.getFullYear();
-
-    return absensiRepository.findBySiswa(siswaId, targetMonth, targetYear);
-  }
-
-  async getRekap(kelasId: string, bulan?: number, tahun?: number) {
-    const now = new Date();
-    const targetMonth = bulan || now.getMonth() + 1;
-    const targetYear = tahun || now.getFullYear();
-
-    return absensiRepository.findRekap(kelasId, targetMonth, targetYear);
-  }
-
-  async generateQR(kelasId: string, tanggal: Date) {
-    const token = uuidv4();
-    const qrData = JSON.stringify({
-      kelasId,
-      tanggal: tanggal.toISOString().split('T')[0],
-      token,
-    });
-
-    const qrCode = await QRCode.toDataURL(qrData);
-    return { qrCode, token };
-  }
-
-  async scanQR(qrData: string, userId: string) {
-    const data = JSON.parse(qrData);
-    
-    const siswa = await prisma.siswa.findFirst({
-      where: {
-        userId,
-        kelasId: data.kelasId,
-        status: 'AKTIF',
-      },
-    });
-
-    if (!siswa) throw new AppError('Siswa tidak ditemukan di kelas ini', 400);
-
-    // Check if already absen
+    // Check if already recorded today
     const existing = await prisma.absensi.findFirst({
       where: {
-        siswaId: siswa.id,
+        siswaId,
         tanggal: {
-          gte: new Date(new Date().setHours(0, 0, 0, 0)),
-          lt: new Date(new Date().setHours(23, 59, 59, 999)),
+          gte: startOfDay(today),
+          lte: endOfDay(today),
         },
       },
     });
 
-    if (existing) throw new AppError('Anda sudah melakukan absensi hari ini', 400);
+    if (existing) {
+      throw new AppError('Absensi hari ini sudah tercatat', 400);
+    }
 
-    return absensiRepository.create({
-      siswaId: siswa.id,
-      status: 'HADIR',
-      qrCode: data.token,
+    return prisma.absensi.create({
+      data: {
+        siswaId,
+        status: data.status as any,
+        keterangan: data.keterangan,
+        tanggal: today,
+      },
     });
   }
 
-  async exportPDF(kelasId: string, bulan?: number, tahun?: number) {
-    // Implementasi PDF generation dengan library seperti PDFKit
-    // Placeholder
-    return Buffer.from('PDF Generation placeholder');
+  async recordByQR(qrData: string, lokasi?: { lat: number; lng: number }) {
+    // QR data format: studentId:timestamp:hash
+    const [siswaId, timestamp, hash] = qrData.split(':');
+
+    // Validate QR
+    const now = Date.now();
+    const qrTime = parseInt(timestamp);
+    
+    if (now - qrTime > 300000) {
+      // 5 minutes expiry
+      throw new AppError('QR Code kadaluarsa', 400);
+    }
+
+    // Record attendance
+    return this.record(siswaId, {
+      status: 'HADIR',
+    });
+  }
+
+  async generateQR(siswaId: string) {
+    const siswa = await prisma.siswa.findUnique({
+      where: { id: siswaId },
+      include: {
+        user: { select: { namaLengkap: true } },
+        kelas: { select: { nama: true } },
+      },
+    });
+
+    if (!siswa) {
+      throw new AppError('Siswa tidak ditemukan', 404);
+    }
+
+    const timestamp = Date.now().toString();
+    const hash = Buffer.from(`${siswaId}:${timestamp}`).toString('base64');
+    const qrData = `${siswaId}:${timestamp}:${hash}`;
+
+    const qrCode = await QRCode.toDataURL(qrData, {
+      width: 300,
+      margin: 2,
+      color: {
+        dark: '#1e3a8a',
+        light: '#ffffff',
+      },
+    });
+
+    return {
+      qrCode,
+      siswa: {
+        id: siswa.id,
+        nama: siswa.user.namaLengkap,
+        nis: siswa.nis,
+        kelas: siswa.kelas.nama,
+      },
+      expiresIn: 300, // 5 minutes
+    };
+  }
+
+  async getRekap(kelasId: string, bulan: string) {
+    const [year, month] = bulan.split('-');
+    const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
+    const endDate = new Date(parseInt(year), parseInt(month), 0);
+
+    const siswa = await prisma.siswa.findMany({
+      where: { kelasId },
+      include: {
+        user: { select: { namaLengkap: true } },
+        absensi: {
+          where: {
+            tanggal: {
+              gte: startDate,
+              lte: endDate,
+            },
+          },
+          select: {
+            tanggal: true,
+            status: true,
+          },
+        },
+      },
+    });
+
+    // Generate summary
+    return siswa.map((s) => {
+      const hadir = s.absensi.filter((a) => a.status === 'HADIR').length;
+      const sakit = s.absensi.filter((a) => a.status === 'SAKIT').length;
+      const izin = s.absensi.filter((a) => a.status === 'IZIN').length;
+      const alpha = s.absensi.filter((a) => a.status === 'ALPHA').length;
+      const total = hadir + sakit + izin + alpha;
+
+      return {
+        siswaId: s.id,
+        nama: s.user.namaLengkap,
+        nis: s.nis,
+        hadir,
+        sakit,
+        izin,
+        alpha,
+        total,
+        persentase: total > 0 ? ((hadir / total) * 100).toFixed(1) : 0,
+      };
+    });
+  }
+
+  async getStatistikSiswa(siswaId: string, semester: string) {
+    const absensi = await prisma.absensi.findMany({
+      where: { siswaId },
+      orderBy: { tanggal: 'desc' },
+    });
+
+    const total = absensi.length;
+    const hadir = absensi.filter((a) => a.status === 'HADIR').length;
+    const sakit = absensi.filter((a) => a.status === 'SAKIT').length;
+    const izin = absensi.filter((a) => a.status === 'IZIN').length;
+    const alpha = absensi.filter((a) => a.status === 'ALPHA').length;
+
+    return {
+      total,
+      hadir,
+      sakit,
+      izin,
+      alpha,
+      persentaseKehadiran: total > 0 ? ((hadir / total) * 100).toFixed(1) : 0,
+      absensiTerbaru: absensi.slice(0, 10),
+    };
   }
 }

@@ -1,9 +1,0 @@
-                    Admin  Kepsek  Guru   Staff  Siswa  Ortu   Guest
-Data Master          CRUD   View   View   CRUD   -      -      -
-Berita               CRUD   CRUD   CRUD   CRUD   View   View   View
-PPDB                 CRUD   View   -      Verif  Apply  Monitor -
-E-Learning           Manage View   Manage -      Learn  Monitor -
-Keuangan             CRUD   View   -      CRUD   View   Pay    -
-Perpustakaan         CRUD   View   -      Manage Borrow Monitor -
-Absensi              CRUD   View   Manage CRUD   Scan   Monitor -
-Chat                 Manage Manage Manage Manage Chat   Chat   -

@@ -1,131 +1,65 @@
-// src/controllers/pengumuman.controller.ts
 import { Request, Response } from 'express';
-import { PengumumanService } from '../services/pengumuman.service';
-import { asyncHandler } from '../utils/asyncHandler';
-import { paginationSchema } from '../validations/common.validation';
-import { AppError } from '../utils/AppError';
-
-const pengumumanService = new PengumumanService();
+import { ResponseHelper } from '../utils/responseHelper';
+import supabase from '../config/supabase';
 
 export class PengumumanController {
-  getAll = asyncHandler(async (req: Request, res: Response) => {
-    const query = paginationSchema.parse(req.query);
-    const filters = {
-      search: req.query.search as string,
-      status: req.query.status as string,
-      isPinned: req.query.isPinned === 'true' ? true : req.query.isPinned === 'false' ? false : undefined,
-    };
+  getAll = async (req: Request, res: Response) => {
+    try {
+      const { data, error } = await supabase
+        .from('pengumuman')
+        .select('*, author:users(id, nama_lengkap)')
+        .eq('status', 'PUBLISHED')
+        .order('is_pinned', { ascending: false })
+        .order('created_at', { ascending: false });
 
-    const result = await pengumumanService.getAll(query, filters);
+      if (error) throw error;
 
-    res.status(200).json({
-      status: 'success',
-      data: result,
-    });
-  });
-
-  getById = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const pengumuman = await pengumumanService.getById(id);
-
-    res.status(200).json({
-      status: 'success',
-      data: { pengumuman },
-    });
-  });
-
-  getPinned = asyncHandler(async (req: Request, res: Response) => {
-    const pengumuman = await pengumumanService.getPinned();
-
-    res.status(200).json({
-      status: 'success',
-      data: { items: pengumuman },
-    });
-  });
-
-  getLatest = asyncHandler(async (req: Request, res: Response) => {
-    const limit = parseInt(req.query.limit as string) || 5;
-    const pengumuman = await pengumumanService.getLatest(limit);
-
-    res.status(200).json({
-      status: 'success',
-      data: { items: pengumuman },
-    });
-  });
-
-  create = asyncHandler(async (req: Request, res: Response) => {
-    const { judul, konten, isPinned, priority, status, expiredAt } = req.body;
-
-    if (!judul || !konten) {
-      throw new AppError('Judul dan konten harus diisi', 400);
+      return ResponseHelper.success(res, { items: data || [] });
+    } catch (error: any) {
+      return ResponseHelper.error(res, error.message);
     }
+  };
 
-    const pengumuman = await pengumumanService.create(
-      {
-        judul,
-        konten,
-        isPinned,
-        priority,
-        status,
-        expiredAt: expiredAt ? new Date(expiredAt) : undefined,
-      },
-      req.user!.id,
-      req.file
-    );
+  getById = async (req: Request, res: Response) => {
+    try {
+      const { data, error } = await supabase
+        .from('pengumuman')
+        .select('*, author:users(id, nama_lengkap)')
+        .eq('id', req.params.id)
+        .single();
 
-    res.status(201).json({
-      status: 'success',
-      message: 'Pengumuman berhasil dibuat',
-      data: { pengumuman },
-    });
-  });
+      if (error || !data) return ResponseHelper.notFound(res, 'Pengumuman tidak ditemukan');
 
-  update = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const data = req.body;
-
-    if (data.expiredAt) {
-      data.expiredAt = new Date(data.expiredAt);
+      return ResponseHelper.success(res, { pengumuman: data });
+    } catch (error: any) {
+      return ResponseHelper.error(res, error.message);
     }
+  };
 
-    const pengumuman = await pengumumanService.update(id, data, req.file);
+  create = async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user?.id;
+      if (!userId) return ResponseHelper.unauthorized(res);
 
-    res.status(200).json({
-      status: 'success',
-      message: 'Pengumuman berhasil diperbarui',
-      data: { pengumuman },
-    });
-  });
+      const { data, error } = await supabase
+        .from('pengumuman')
+        .insert({
+          judul: req.body.judul,
+          konten: req.body.konten,
+          is_pinned: req.body.isPinned || false,
+          priority: req.body.priority || 0,
+          status: req.body.status || 'PUBLISHED',
+          author_id: userId,
+          published_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
 
-  delete = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    await pengumumanService.delete(id);
+      if (error) throw error;
 
-    res.status(200).json({
-      status: 'success',
-      message: 'Pengumuman berhasil dihapus',
-    });
-  });
-
-  togglePin = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const pengumuman = await pengumumanService.togglePin(id);
-
-    res.status(200).json({
-      status: 'success',
-      message: `Pengumuman ${pengumuman.isPinned ? 'disematkan' : 'dilepas dari sematan'}`,
-      data: { pengumuman },
-    });
-  });
-
-  archive = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const pengumuman = await pengumumanService.archive(id);
-
-    res.status(200).json({
-      status: 'success',
-      message: 'Pengumuman diarsipkan',
-      data: { pengumuman },
-    });
-  });
+      return ResponseHelper.created(res, { pengumuman: data }, 'Pengumuman berhasil dibuat');
+    } catch (error: any) {
+      return ResponseHelper.error(res, error.message);
+    }
+  };
 }

@@ -1,105 +1,51 @@
-// src/controllers/upload.controller.ts
 import { Request, Response } from 'express';
 import { UploadService } from '../services/upload.service';
 import { asyncHandler } from '../utils/asyncHandler';
+import { ResponseHelper } from '../utils/responseHelper';
+import { AppError } from '../utils/AppError';
 
 const uploadService = new UploadService();
 
 export class UploadController {
-  single = asyncHandler(async (req: Request, res: Response) => {
-    if (!req.file) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'File tidak ditemukan',
-      });
-    }
-
-    const result = await uploadService.uploadSingle(req.file);
-
-    res.status(200).json({
-      status: 'success',
-      data: result,
-    });
-  });
-
-  multiple = asyncHandler(async (req: Request, res: Response) => {
-    const files = req.files as Express.Multer.File[];
-    
-    if (!files || files.length === 0) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'File tidak ditemukan',
-      });
-    }
-
-    const result = await uploadService.uploadMultiple(files);
-
-    res.status(200).json({
-      status: 'success',
-      data: result,
-    });
-  });
-
-  delete = asyncHandler(async (req: Request, res: Response) => {
-    const { publicId, url } = req.body;
-    await uploadService.delete(publicId || url);
-
-    res.status(200).json({
-      status: 'success',
-      message: 'File berhasil dihapus',
-    });
-  });
-
-  // Upload specific types
   uploadImage = asyncHandler(async (req: Request, res: Response) => {
     if (!req.file) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'File gambar tidak ditemukan',
-      });
+      throw new AppError('File tidak ditemukan', 400);
     }
-
-    const result = await uploadService.uploadImage(req.file, {
-      width: req.body.width ? parseInt(req.body.width) : undefined,
-      height: req.body.height ? parseInt(req.body.height) : undefined,
-      quality: req.body.quality ? parseInt(req.body.quality) : 80,
-    });
-
-    res.status(200).json({
-      status: 'success',
-      data: result,
-    });
+    
+    const result = await uploadService.uploadImage(req.file);
+    ResponseHelper.success(res, result, 'Gambar berhasil diupload');
   });
 
   uploadDocument = asyncHandler(async (req: Request, res: Response) => {
     if (!req.file) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'File dokumen tidak ditemukan',
-      });
+      throw new AppError('File tidak ditemukan', 400);
     }
-
+    
     const result = await uploadService.uploadDocument(req.file);
-
-    res.status(200).json({
-      status: 'success',
-      data: result,
-    });
+    ResponseHelper.success(res, result, 'Dokumen berhasil diupload');
   });
 
-  uploadVideo = asyncHandler(async (req: Request, res: Response) => {
-    if (!req.file) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'File video tidak ditemukan',
-      });
+  uploadMultiple = asyncHandler(async (req: Request, res: Response) => {
+    const files = req.files as Express.Multer.File[];
+    if (!files || files.length === 0) {
+      throw new AppError('File tidak ditemukan', 400);
     }
+    
+    const result = await uploadService.uploadMultiple(files);
+    ResponseHelper.success(res, result, `${files.length} file berhasil diupload`);
+  });
 
-    const result = await uploadService.uploadVideo(req.file);
+  uploadAvatar = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.file) {
+      throw new AppError('File tidak ditemukan', 400);
+    }
+    
+    const result = await uploadService.uploadAvatar(req.file);
+    ResponseHelper.success(res, result, 'Avatar berhasil diupload');
+  });
 
-    res.status(200).json({
-      status: 'success',
-      data: result,
-    });
+  deleteFile = asyncHandler(async (req: Request, res: Response) => {
+    await uploadService.deleteFile(req.params.publicId);
+    ResponseHelper.success(res, null, 'File berhasil dihapus');
   });
 }

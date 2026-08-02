@@ -1,105 +1,86 @@
-// src/controllers/auth.controller.ts
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
-import { asyncHandler } from '../utils/asyncHandler';
-import { loginSchema, registerSchema, changePasswordSchema } from '../validations/auth.validation';
+import { ResponseHelper } from '../utils/responseHelper';
+import { AppError } from '../utils/AppError';
 
 const authService = new AuthService();
 
 export class AuthController {
-  login = asyncHandler(async (req: Request, res: Response) => {
-    const data = loginSchema.parse(req.body);
-    const result = await authService.login(data);
+  login = async (req: Request, res: Response) => {
+    try {
+      const { email, password } = req.body;
+      
+      if (!email || !password) {
+        return ResponseHelper.badRequest(res, 'Email dan password harus diisi');
+      }
 
-    res.cookie('refreshToken', result.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+      const result = await authService.login({ email, password });
 
-    res.status(200).json({
-      status: 'success',
-      data: {
+      res.cookie('refreshToken', result.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+
+      return ResponseHelper.success(res, {
         user: result.user,
         accessToken: result.accessToken,
-      },
-    });
-  });
+      }, 'Login berhasil');
+    } catch (error: any) {
+      if (error instanceof AppError) {
+        return ResponseHelper.error(res, error.message, error.statusCode);
+      }
+      return ResponseHelper.error(res, error.message || 'Login gagal', 500);
+    }
+  };
 
-  register = asyncHandler(async (req: Request, res: Response) => {
-    const data = registerSchema.parse(req.body);
-    const user = await authService.register(data);
+  me = async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user?.id;
+      if (!userId) {
+        return ResponseHelper.unauthorized(res, 'User tidak ditemukan');
+      }
+      
+      const user = await authService.getCurrentUser(userId);
+      return ResponseHelper.success(res, { user });
+    } catch (error: any) {
+      return ResponseHelper.error(res, error.message, error.statusCode || 500);
+    }
+  };
 
-    res.status(201).json({
-      status: 'success',
-      data: { user },
-    });
-  });
+  refreshToken = async (req: Request, res: Response) => {
+    try {
+      const token = req.cookies.refreshToken || req.body.refreshToken;
+      if (!token) {
+        return ResponseHelper.badRequest(res, 'Refresh token tidak ditemukan');
+      }
 
-  refreshToken = asyncHandler(async (req: Request, res: Response) => {
-    const token = req.cookies.refreshToken || req.body.refreshToken;
-    const result = await authService.refreshToken(token);
+      const result = await authService.refreshToken(token);
 
-    res.cookie('refreshToken', result.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+      res.cookie('refreshToken', result.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
 
-    res.status(200).json({
-      status: 'success',
-      data: { accessToken: result.accessToken },
-    });
-  });
+      return ResponseHelper.success(res, { accessToken: result.accessToken });
+    } catch (error: any) {
+      return ResponseHelper.error(res, error.message, error.statusCode || 401);
+    }
+  };
 
-  logout = asyncHandler(async (req: Request, res: Response) => {
-    await authService.logout(req.user!.id);
-    res.clearCookie('refreshToken');
-
-    res.status(200).json({
-      status: 'success',
-      message: 'Berhasil logout',
-    });
-  });
-
-  me = asyncHandler(async (req: Request, res: Response) => {
-    const user = await authService.getCurrentUser(req.user!.id);
-
-    res.status(200).json({
-      status: 'success',
-      data: { user },
-    });
-  });
-
-  changePassword = asyncHandler(async (req: Request, res: Response) => {
-    const data = changePasswordSchema.parse(req.body);
-    await authService.changePassword(req.user!.id, data);
-
-    res.status(200).json({
-      status: 'success',
-      message: 'Password berhasil diubah',
-    });
-  });
-
-  forgotPassword = asyncHandler(async (req: Request, res: Response) => {
-    const { email } = req.body;
-    await authService.forgotPassword(email);
-
-    res.status(200).json({
-      status: 'success',
-      message: 'Link reset password telah dikirim ke email',
-    });
-  });
-
-  resetPassword = asyncHandler(async (req: Request, res: Response) => {
-    const { token, password } = req.body;
-    await authService.resetPassword(token, password);
-
-    res.status(200).json({
-      status: 'success',
-      message: 'Password berhasil direset',
-    });
-  });
+  logout = async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user?.id;
+      if (userId) {
+        await authService.logout(userId);
+      }
+      res.clearCookie('refreshToken');
+      return ResponseHelper.success(res, null, 'Logout berhasil');
+    } catch (error: any) {
+      return ResponseHelper.error(res, error.message, 500);
+    }
+  };
 }

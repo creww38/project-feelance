@@ -1,63 +1,42 @@
-// src/controllers/materi.controller.ts
 import { Request, Response } from 'express';
-import { ELearningService } from '../services/eLearning.service';
-import { asyncHandler } from '../utils/asyncHandler';
-
-const eLearningService = new ELearningService();
+import { ResponseHelper } from '../utils/responseHelper';
+import supabase from '../config/supabase';
 
 export class MateriController {
-  getAll = asyncHandler(async (req: Request, res: Response) => {
-    const filters = {
-      mataPelajaranId: req.query.mataPelajaranId as string,
-      kelasId: req.query.kelasId as string,
-      search: req.query.search as string,
-    };
-    const materi = await eLearningService.getAllMateri(filters);
+  getAll = async (req: Request, res: Response) => {
+    try {
+      const { data, error } = await supabase
+        .from('materi')
+        .select('*, mata_pelajaran:id, nama')
+        .order('created_at', { ascending: false });
 
-    res.status(200).json({
-      status: 'success',
-      data: { items: materi },
-    });
-  });
+      if (error) throw error;
+      return ResponseHelper.success(res, { items: data || [] });
+    } catch (error: any) {
+      return ResponseHelper.error(res, error.message);
+    }
+  };
 
-  getById = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const materi = await eLearningService.getMateriById(id);
+  create = async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user?.guru?.id || (req as any).user?.id;
+      const { data, error } = await supabase
+        .from('materi')
+        .insert({
+          judul: req.body.judul,
+          deskripsi: req.body.deskripsi,
+          konten: req.body.konten,
+          file_url: req.body.fileUrl,
+          mata_pelajaran_id: req.body.mataPelajaranId,
+          guru_id: userId,
+        })
+        .select()
+        .single();
 
-    res.status(200).json({
-      status: 'success',
-      data: { materi },
-    });
-  });
-
-  create = asyncHandler(async (req: Request, res: Response) => {
-    const data = req.body;
-    const materi = await eLearningService.createMateri(data, req.file, req.user!.id);
-
-    res.status(201).json({
-      status: 'success',
-      data: { materi },
-    });
-  });
-
-  update = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const data = req.body;
-    const materi = await eLearningService.updateMateri(id, data, req.file);
-
-    res.status(200).json({
-      status: 'success',
-      data: { materi },
-    });
-  });
-
-  delete = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    await eLearningService.deleteMateri(id);
-
-    res.status(200).json({
-      status: 'success',
-      message: 'Materi berhasil dihapus',
-    });
-  });
+      if (error) throw error;
+      return ResponseHelper.created(res, { materi: data }, 'Materi berhasil dibuat');
+    } catch (error: any) {
+      return ResponseHelper.error(res, error.message);
+    }
+  };
 }

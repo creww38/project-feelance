@@ -1,56 +1,53 @@
 // src/services/pesan.service.ts
-import { PesanRepository } from '../repositories/pesan.repository';
-import { AppError } from '../utils/AppError';
 import prisma from '../config/database';
-
-const pesanRepository = new PesanRepository();
+import { AppError } from '../utils/AppError';
+import { PaginationOptions } from '../utils/pagination';
 
 export class PesanService {
   async getConversations(userId: string) {
-    const messages = await prisma.pesan.findMany({
+    // Get unique users that have conversations with current user
+    const conversations = await prisma.pesan.findMany({
       where: {
         OR: [{ pengirimId: userId }, { penerimaId: userId }],
       },
       orderBy: { createdAt: 'desc' },
       include: {
-        pengirim: { select: { id: true, namaLengkap: true, foto: true } },
-        penerima: { select: { id: true, namaLengkap: true, foto: true } },
+        pengirim: {
+          select: { id: true, namaLengkap: true, foto: true },
+        },
+        penerima: {
+          select: { id: true, namaLengkap: true, foto: true },
+        },
       },
     });
 
-    // Group by conversation
-    const conversations = new Map();
-    for (const msg of messages) {
-      const otherUser = msg.pengirimId === userId ? msg.penerima : msg.pengirim;
-      if (!conversations.has(otherUser.id)) {
-        conversations.set(otherUser.id, {
-          user: otherUser,
-          lastMessage: msg,
+    // Group by conversation partner
+    const conversationMap = new Map();
+
+    for (const msg of conversations) {
+      const partnerId =
+        msg.pengirimId === userId ? msg.penerimaId : msg.pengirimId;
+      
+      if (!conversationMap.has(partnerId)) {
+        conversationMap.set(partnerId, {
+          partner: msg.pengirimId === userId ? msg.penerima : msg.pengirim,
+          lastMessage: msg.konten,
+          lastMessageTime: msg.createdAt,
           unreadCount: 0,
         });
       }
-    }
 
-    // Get unread counts
-    const unreadCounts = await prisma.pesan.groupBy({
-      by: ['pengirimId'],
-      where: {
-        penerimaId: userId,
-        isRead: false,
-      },
-      _count: true,
-    });
-
-    for (const count of unreadCounts) {
-      if (conversations.has(count.pengirimId)) {
-        conversations.get(count.pengirimId).unreadCount = count._count;
+      if (msg.penerimaId === userId && !msg.isRead) {
+        conversationMap.get(partnerId).unreadCount++;
       }
     }
 
-    return Array.from(conversations.values());
+    return Array.from(conversationMap.values()).sort(
+      (a, b) => b.lastMessageTime.getTime() - a.lastMessageTime.getTime()
+    );
   }
 
-  async getMessages(userId: string, otherUserId: string, options: any) {
+  async getMessages(userId: string, partnerId: string, options: PaginationOptions) {
     const page = options.page || 1;
     const limit = options.limit || 50;
 
@@ -58,63 +55,97 @@ export class PesanService {
       prisma.pesan.findMany({
         where: {
           OR: [
-            { pengirimId: userId, penerimaId: otherUserId },
-            { pengirimId: otherUserId, penerimaId: userId },
+            { pengirimId: userId, penerimaId: partnerId },
+            { pengirimId: partnerId, penerimaId: userId },
           ],
         },
-        orderBy: { createdAt: 'desc' },
+        include: {
+          pengirim: {
+            select: { id: true, namaLengkap: true, foto: true },
+          },
+        },
         skip: (page - 1) * limit,
         take: limit,
-        include: {
-          pengirim: { select: { id: true, namaLengkap: true, foto: true } },
-        },
+        orderBy: { createdAt: 'desc' },
       }),
       prisma.pesan.count({
         where: {
           OR: [
-            { pengirimId: userId, penerimaId: otherUserId },
-            { pengirimId: otherUserId, penerimaId: userId },
+            { pengirimId: userId, penerimaId: partnerId },
+            { pengirimId: partnerId, penerimaId: userId },
           ],
         },
       }),
     ]);
 
-    return { items: messages.reverse(), meta: { total, page, limit } };
-  }
-
-  async send(pengirimId: string, penerimaId: string, konten: string, file?: Express.Multer.File) {
-    return pesanRepository.create({
-      pengirimId,
-      penerimaId,
-      konten,
-      lampiran: file?.path ? `/uploads/documents/${file.filename}` : null,
-    });
-  }
-
-  async markAsRead(userId: string, senderId: string) {
+    // Mark messages as read
     await prisma.pesan.updateMany({
       where: {
-        pengirimId: senderId,
+        pengirimId: partnerId,
         penerimaId: userId,
         isRead: false,
       },
+      data: { isRead: true, readAt: new Date() },
+    });
+
+    return {
+      items: messages.reverse(),
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async sendMessage(pengirimId: string, data: { penerimaId: string; konten: string }) {
+    // Validate recipient exists
+    const penerima = await prisma.user.findUnique({
+      where: { id: data.penerimaId },
+    });
+
+    if (!penerima) {
+      throw new AppError('Penerima tidak ditemukan', 404);
+    }
+
+    return prisma.pesan.create({
       data: {
-        isRead: true,
-        readAt: new Date(),
+        pengirimId,
+        penerimaId: data.penerimaId,
+        konten: data.konten,
+      },
+      include: {
+        pengirim: {
+          select: { id: true, namaLengkap: true, foto: true },
+        },
       },
     });
   }
 
-  async delete(messageId: string, userId: string) {
-    const pesan = await pesanRepository.findById(messageId);
-    if (!pesan) throw new AppError('Pesan tidak ditemukan', 404);
-    if (pesan.pengirimId !== userId) throw new AppError('Tidak diizinkan', 403);
-    await pesanRepository.delete(messageId);
+  async markAsRead(pesanId: string, userId: string) {
+    const pesan = await prisma.pesan.findUnique({ where: { id: pesanId } });
+
+    if (!pesan) {
+      throw new AppError('Pesan tidak ditemukan', 404);
+    }
+
+    if (pesan.penerimaId !== userId) {
+      throw new AppError('Unauthorized', 403);
+    }
+
+    return prisma.pesan.update({
+      where: { id: pesanId },
+      data: { isRead: true, readAt: new Date() },
+    });
   }
 
   async getUnreadCount(userId: string) {
     return prisma.pesan.count({
-      where: { penerimaId: userId, isRead: false },
+      where: {
+        penerimaId: userId,
+        isRead: false,
+      },
     });
   }
 }

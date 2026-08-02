@@ -1,112 +1,107 @@
-// src/services/galeri.service.ts
 import { GaleriRepository } from '../repositories/galeri.repository';
 import { AppError } from '../utils/AppError';
-import { uploadToCloudinary } from '../config/cloudinary';
-import { generateSlug } from '../utils/slug';
-import fs from 'fs/promises';
+import { PaginationOptions } from '../utils/pagination';
+import { cacheGet, cacheSet, cacheDeletePattern } from '../config/redis';
 
 const galeriRepository = new GaleriRepository();
 
 export class GaleriService {
-  async getAllAlbums(options: any) {
+  async getAll(options: PaginationOptions, filters: any) {
+    const cacheKey = `galeri:list:${JSON.stringify({ options, filters })}`;
+    const cached = await cacheGet(cacheKey);
+
+    if (cached) return JSON.parse(cached);
+
+    const where: any = {};
+
+    if (filters.tipe) {
+      where.tipe = filters.tipe;
+    }
+
+    if (filters.albumId) {
+      where.albumId = filters.albumId;
+    }
+
+    const result = await galeriRepository.findAll(options, where);
+    await cacheSet(cacheKey, JSON.stringify(result), 300);
+    return result;
+  }
+
+  async getById(id: string) {
+    const galeri = await galeriRepository.findById(id);
+    if (!galeri) {
+      throw new AppError('Galeri tidak ditemukan', 404);
+    }
+    return galeri;
+  }
+
+  async getByAlbum(albumId: string, options: PaginationOptions) {
+    return galeriRepository.findByAlbum(albumId, options);
+  }
+
+  async create(data: any, userId: string) {
+    const galeri = await galeriRepository.create({
+      ...data,
+      uploadedBy: userId,
+    });
+
+    await cacheDeletePattern('galeri:*');
+    return galeri;
+  }
+
+  async createMany(items: any[], userId: string) {
+    const data = items.map((item) => ({
+      ...item,
+      uploadedBy: userId,
+    }));
+
+    await galeriRepository.createMany(data);
+    await cacheDeletePattern('galeri:*');
+    return { message: `${items.length} item berhasil ditambahkan` };
+  }
+
+  async update(id: string, data: any) {
+    const galeri = await galeriRepository.findById(id);
+    if (!galeri) {
+      throw new AppError('Galeri tidak ditemukan', 404);
+    }
+
+    const updated = await galeriRepository.update(id, data);
+    await cacheDeletePattern('galeri:*');
+    return updated;
+  }
+
+  async delete(id: string) {
+    const galeri = await galeriRepository.findById(id);
+    if (!galeri) {
+      throw new AppError('Galeri tidak ditemukan', 404);
+    }
+
+    await galeriRepository.delete(id);
+    await cacheDeletePattern('galeri:*');
+    return { message: 'Item berhasil dihapus' };
+  }
+
+  // Album methods
+  async getAllAlbums(options: PaginationOptions) {
     return galeriRepository.findAllAlbums(options);
   }
 
-  async getAlbumById(id: string) {
-    const album = await galeriRepository.findAlbumById(id);
-    if (!album) throw new AppError('Album tidak ditemukan', 404);
+  async getAlbumBySlug(slug: string) {
+    const album = await galeriRepository.findAlbumBySlug(slug);
+    if (!album) {
+      throw new AppError('Album tidak ditemukan', 404);
+    }
     return album;
   }
 
-  async createAlbum(data: any, file?: Express.Multer.File) {
-    const slug = generateSlug(data.nama);
-    let cover = null;
+  async createAlbum(data: any) {
+    // Generate slug
+    const slug = data.nama
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/[\s]+/g, '-');
 
-    if (file) {
-      if (process.env.CLOUDINARY_CLOUD_NAME) {
-        const result = await uploadToCloudinary(file.path, 'albums');
-        cover = result.secure_url;
-        await fs.unlink(file.path);
-      } else {
-        cover = `/uploads/images/${file.filename}`;
-      }
-    }
-
-    return galeriRepository.createAlbum({
-      ...data,
-      slug,
-      cover,
-    });
-  }
-
-  async updateAlbum(id: string, data: any, file?: Express.Multer.File) {
-    const album = await galeriRepository.findAlbumById(id);
-    if (!album) throw new AppError('Album tidak ditemukan', 404);
-
-    const updateData: any = { ...data };
-    if (data.nama) updateData.slug = generateSlug(data.nama);
-
-    if (file) {
-      if (process.env.CLOUDINARY_CLOUD_NAME) {
-        const result = await uploadToCloudinary(file.path, 'albums');
-        updateData.cover = result.secure_url;
-        await fs.unlink(file.path);
-      } else {
-        updateData.cover = `/uploads/images/${file.filename}`;
-      }
-    }
-
-    return galeriRepository.updateAlbum(id, updateData);
-  }
-
-  async deleteAlbum(id: string) {
-    const album = await galeriRepository.findAlbumById(id);
-    if (!album) throw new AppError('Album tidak ditemukan', 404);
-    await galeriRepository.deleteAlbum(id);
-  }
-
-  async getItems(albumId: string, options: any) {
-    return galeriRepository.findItems(albumId, options);
-  }
-
-  async uploadItems(albumId: string, files: Express.Multer.File[], userId: string) {
-    const album = await galeriRepository.findAlbumById(albumId);
-    if (!album) throw new AppError('Album tidak ditemukan', 404);
-
-    const items = [];
-    for (const file of files) {
-      let url = '';
-      let thumbnail = '';
-
-      if (process.env.CLOUDINARY_CLOUD_NAME) {
-        const result = await uploadToCloudinary(file.path, `gallery/${albumId}`);
-        url = result.secure_url;
-        thumbnail = result.secure_url;
-        await fs.unlink(file.path);
-      } else {
-        url = `/uploads/images/${file.filename}`;
-        thumbnail = url;
-      }
-
-      const item = await galeriRepository.createItem({
-        judul: file.originalname.split('.')[0],
-        tipe: file.mimetype.startsWith('video/') ? 'VIDEO' : 'FOTO',
-        url,
-        thumbnail,
-        albumId,
-        uploadedBy: userId,
-        ukuran: file.size,
-      });
-
-      items.push(item);
-    }
-
-    return items;
-  }
-
-  async deleteItem(id: string) {
-    const item = await galeriRepository.findItemById(id);
-    if (!item) throw new AppError('Item tidak ditemukan', 404);
-    await galeriRepository.deleteItem(id);
+    return galeriRepository.createAlbum({ ...data, slug });
   }
 }

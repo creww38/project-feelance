@@ -1,95 +1,51 @@
-// src/controllers/nilai.controller.ts
 import { Request, Response } from 'express';
 import { NilaiService } from '../services/nilai.service';
 import { asyncHandler } from '../utils/asyncHandler';
+import { ResponseHelper } from '../utils/responseHelper';
+import { paginationSchema } from '../validations/common.validation';
 
 const nilaiService = new NilaiService();
 
 export class NilaiController {
+  getAll = asyncHandler(async (req: Request, res: Response) => {
+    const query = paginationSchema.parse(req.query);
+    const result = await nilaiService.getAll(query, req.query);
+    ResponseHelper.success(res, result);
+  });
+
+  getById = asyncHandler(async (req: Request, res: Response) => {
+    const nilai = await nilaiService.getById(req.params.id);
+    ResponseHelper.success(res, { nilai });
+  });
+
   getBySiswa = asyncHandler(async (req: Request, res: Response) => {
-    const { siswaId } = req.params;
-    const { semester } = req.query;
-    const nilai = await nilaiService.getBySiswa(
-      siswaId,
-      semester ? parseInt(semester as string) : undefined
-    );
-
-    res.status(200).json({
-      status: 'success',
-      data: { nilai },
-    });
+    const result = await nilaiService.getBySiswa(req.params.siswaId);
+    ResponseHelper.success(res, { items: result });
   });
 
-  getByKelas = asyncHandler(async (req: Request, res: Response) => {
-    const { kelasId, mataPelajaranId } = req.params;
-    const { semester } = req.query;
-    const nilai = await nilaiService.getByKelas(
-      kelasId,
-      mataPelajaranId,
-      semester ? parseInt(semester as string) : undefined
-    );
-
-    res.status(200).json({
-      status: 'success',
-      data: { nilai },
-    });
-  });
-
-  input = asyncHandler(async (req: Request, res: Response) => {
-    const data = req.body;
-    const nilai = await nilaiService.input(data, req.user!.id);
-
-    res.status(201).json({
-      status: 'success',
-      data: { nilai },
-    });
-  });
-
-  inputBulk = asyncHandler(async (req: Request, res: Response) => {
-    const { nilai: nilaiData } = req.body;
-    const result = await nilaiService.inputBulk(nilaiData);
-
-    res.status(201).json({
-      status: 'success',
-      data: result,
-    });
+  create = asyncHandler(async (req: Request, res: Response) => {
+    const nilai = await nilaiService.create(req.body);
+    ResponseHelper.created(res, { nilai }, 'Nilai berhasil ditambahkan');
   });
 
   update = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const data = req.body;
-    const nilai = await nilaiService.update(id, data);
-
-    res.status(200).json({
-      status: 'success',
-      data: { nilai },
-    });
+    const nilai = await nilaiService.update(req.params.id, req.body);
+    ResponseHelper.success(res, { nilai }, 'Nilai berhasil diupdate');
   });
 
-  getRapor = asyncHandler(async (req: Request, res: Response) => {
-    const { siswaId } = req.params;
-    const { semester } = req.query;
-    const rapor = await nilaiService.getRapor(
-      siswaId,
-      semester ? parseInt(semester as string) : undefined
-    );
-
-    res.status(200).json({
-      status: 'success',
-      data: rapor,
-    });
+  delete = asyncHandler(async (req: Request, res: Response) => {
+    await nilaiService.delete(req.params.id);
+    ResponseHelper.success(res, null, 'Nilai berhasil dihapus');
   });
 
-  exportPDF = asyncHandler(async (req: Request, res: Response) => {
-    const { siswaId } = req.params;
-    const { semester } = req.query;
-    const buffer = await nilaiService.exportRaporPDF(
-      siswaId,
-      semester ? parseInt(semester as string) : undefined
-    );
+  getRekapKelas = asyncHandler(async (req: Request, res: Response) => {
+    const semester = parseInt(req.query.semester as string) || 1;
+    const result = await nilaiService.getRekapKelas(req.params.kelasId, semester);
+    ResponseHelper.success(res, result);
+  });
 
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=rapor-${siswaId}.pdf`);
-    res.send(buffer);
+  importNilai = asyncHandler(async (req: Request, res: Response) => {
+    const result = await nilaiService.importNilai(req.body.items);
+    ResponseHelper.success(res, result, 'Import nilai selesai');
   });
 }

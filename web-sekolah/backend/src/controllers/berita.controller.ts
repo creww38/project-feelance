@@ -1,89 +1,127 @@
-// src/controllers/berita.controller.ts
 import { Request, Response } from 'express';
-import { BeritaService } from '../services/berita.service';
-import { asyncHandler } from '../utils/asyncHandler';
-import { paginationSchema } from '../validations/common.validation';
-import { beritaSchema } from '../validations/berita.validation';
-
-const beritaService = new BeritaService();
+import { ResponseHelper } from '../utils/responseHelper';
+import supabase from '../config/supabase';
 
 export class BeritaController {
-  getAll = asyncHandler(async (req: Request, res: Response) => {
-    const query = paginationSchema.parse(req.query);
-    const result = await beritaService.getAll(query, req.query);
+  getAll = async (req: Request, res: Response) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const from = (page - 1) * limit;
+      const to = from + limit - 1;
 
-    res.status(200).json({
-      status: 'success',
-      data: result,
-    });
-  });
+      let query = supabase
+        .from('berita')
+        .select('*, kategori(id, nama, slug), author:users(id, nama_lengkap, foto)', { count: 'exact' })
+        .eq('status', 'PUBLISHED')
+        .order('published_at', { ascending: false })
+        .range(from, to);
 
-  getBySlug = asyncHandler(async (req: Request, res: Response) => {
-    const { slug } = req.params;
-    const berita = await beritaService.getBySlug(slug);
+      const { data, error, count } = await query;
 
-    res.status(200).json({
-      status: 'success',
-      data: { berita },
-    });
-  });
+      if (error) throw error;
 
-  create = asyncHandler(async (req: Request, res: Response) => {
-    const data = beritaSchema.parse(req.body);
-    const berita = await beritaService.create(data, req.user!.id);
+      return ResponseHelper.paginated(res, {
+        items: data || [],
+        meta: {
+          total: count || 0,
+          page,
+          limit,
+          totalPages: Math.ceil((count || 0) / limit),
+        },
+      });
+    } catch (error: any) {
+      return ResponseHelper.error(res, error.message);
+    }
+  };
 
-    res.status(201).json({
-      status: 'success',
-      data: { berita },
-    });
-  });
+  getBySlug = async (req: Request, res: Response) => {
+    try {
+      const { data, error } = await supabase
+        .from('berita')
+        .select('*, kategori(id, nama, slug), author:users(id, nama_lengkap, foto)')
+        .eq('slug', req.params.slug)
+        .single();
 
-  update = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const data = beritaSchema.partial().parse(req.body);
-    const berita = await beritaService.update(id, data);
+      if (error || !data) {
+        return ResponseHelper.notFound(res, 'Berita tidak ditemukan');
+      }
 
-    res.status(200).json({
-      status: 'success',
-      data: { berita },
-    });
-  });
+      return ResponseHelper.success(res, { berita: data });
+    } catch (error: any) {
+      return ResponseHelper.error(res, error.message);
+    }
+  };
 
-  delete = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    await beritaService.delete(id);
+  create = async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user?.id;
+      if (!userId) return ResponseHelper.unauthorized(res);
 
-    res.status(200).json({
-      status: 'success',
-      message: 'Berita berhasil dihapus',
-    });
-  });
+      const { data, error } = await supabase
+        .from('berita')
+        .insert({
+          judul: req.body.judul,
+          slug: req.body.judul.toLowerCase().replace(/\s+/g, '-'),
+          konten: req.body.konten,
+          ringkasan: req.body.ringkasan,
+          gambar: req.body.gambar,
+          status: req.body.status || 'DRAFT',
+          author_id: userId,
+          kategori_id: req.body.kategoriId,
+          published_at: req.body.status === 'PUBLISHED' ? new Date().toISOString() : null,
+        })
+        .select()
+        .single();
 
-  like = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const result = await beritaService.toggleLike(id, req.user!.id);
+      if (error) throw error;
 
-    res.status(200).json({
-      status: 'success',
-      data: result,
-    });
-  });
+      return ResponseHelper.created(res, { berita: data }, 'Berita berhasil dibuat');
+    } catch (error: any) {
+      return ResponseHelper.error(res, error.message);
+    }
+  };
 
-  getFeatured = asyncHandler(async (req: Request, res: Response) => {
-    const result = await beritaService.getFeatured();
+  update = async (req: Request, res: Response) => {
+    try {
+      const updateData: any = {};
+      if (req.body.judul) updateData.judul = req.body.judul;
+      if (req.body.konten) updateData.konten = req.body.konten;
+      if (req.body.ringkasan) updateData.ringkasan = req.body.ringkasan;
+      if (req.body.gambar) updateData.gambar = req.body.gambar;
+      if (req.body.status) {
+        updateData.status = req.body.status;
+        if (req.body.status === 'PUBLISHED') updateData.published_at = new Date().toISOString();
+      }
+      if (req.body.kategoriId) updateData.kategori_id = req.body.kategoriId;
 
-    res.status(200).json({
-      status: 'success',
-      data: { items: result },
-    });
-  });
+      const { data, error } = await supabase
+        .from('berita')
+        .update(updateData)
+        .eq('id', req.params.id)
+        .select()
+        .single();
 
-  getTrending = asyncHandler(async (req: Request, res: Response) => {
-    const result = await beritaService.getTrending();
+      if (error) throw error;
 
-    res.status(200).json({
-      status: 'success',
-      data: { items: result },
-    });
-  });
+      return ResponseHelper.success(res, { berita: data }, 'Berita berhasil diupdate');
+    } catch (error: any) {
+      return ResponseHelper.error(res, error.message);
+    }
+  };
+
+  delete = async (req: Request, res: Response) => {
+    try {
+      const { error } = await supabase
+        .from('berita')
+        .delete()
+        .eq('id', req.params.id);
+
+      if (error) throw error;
+
+      return ResponseHelper.success(res, null, 'Berita berhasil dihapus');
+    } catch (error: any) {
+      return ResponseHelper.error(res, error.message);
+    }
+  };
 }

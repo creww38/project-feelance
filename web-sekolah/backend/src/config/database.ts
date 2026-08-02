@@ -1,36 +1,26 @@
-// src/config/database.ts
-import { PrismaClient } from '@prisma/client';
-import { logger } from './logger';
+import supabase from './supabase';
 
-let prisma: PrismaClient;
-
-if (process.env.NODE_ENV === 'production') {
-  prisma = new PrismaClient({
-    log: ['error', 'warn'],
-  });
-} else {
-  // Development: log all queries
-  if (!(global as any).prisma) {
-    (global as any).prisma = new PrismaClient({
-      log: ['query', 'error', 'warn'],
-    });
-  }
-  prisma = (global as any).prisma;
-}
-
-export const connectDB = async (): Promise<void> => {
+export const connectDB = async (): Promise<boolean> => {
   try {
-    await prisma.$connect();
-    logger.info('📦 Database connected successfully');
-  } catch (error) {
-    logger.error('❌ Database connection failed:', error);
-    process.exit(1);
+    const { data, error } = await supabase
+      .from('users')
+      .select('count', { count: 'exact', head: true });
+
+    if (error) {
+      console.error('❌ Database connection failed:', error.message);
+      return false;
+    }
+
+    console.log('📦 Database connected successfully');
+    return true;
+  } catch (error: any) {
+    console.error('❌ Database connection error:', error.message);
+    return false;
   }
 };
 
 export const disconnectDB = async (): Promise<void> => {
-  await prisma.$disconnect();
-  logger.info('Database disconnected');
+  console.log('Database disconnected');
 };
 
-export default prisma;
+export default supabase;

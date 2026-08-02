@@ -1,123 +1,100 @@
-// src/controllers/user.controller.ts
 import { Request, Response } from 'express';
-import { UserService } from '../services/user.service';
-import { asyncHandler } from '../utils/asyncHandler';
-import { paginationSchema } from '../validations/common.validation';
-import { createUserSchema, updateUserSchema, updateProfileSchema } from '../validations/user.validation';
-
-const userService = new UserService();
+import { ResponseHelper } from '../utils/responseHelper';
+import supabase from '../config/supabase';
 
 export class UserController {
-  getAll = asyncHandler(async (req: Request, res: Response) => {
-    const query = paginationSchema.parse(req.query);
-    const filters = {
-      role: req.query.role as string,
-      search: req.query.search as string,
-      isActive: req.query.isActive === 'true' ? true : req.query.isActive === 'false' ? false : undefined,
-    };
+  // Get all users
+  getAll = async (req: Request, res: Response) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const from = (page - 1) * limit;
+      const to = from + limit - 1;
 
-    const result = await userService.getAll(query, filters);
+      const { data, error, count } = await supabase
+        .from('users')
+        .select('id, email, username, nama_lengkap, foto, is_active, created_at, user_roles(role_id, roles(id, nama))', { count: 'exact' })
+        .range(from, to)
+        .order('created_at', { ascending: false });
 
-    res.status(200).json({
-      status: 'success',
-      data: result,
-    });
-  });
+      if (error) throw error;
 
-  getById = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const user = await userService.getById(id);
+      return ResponseHelper.paginated(res, {
+        items: data || [],
+        meta: {
+          total: count || 0,
+          page,
+          limit,
+          totalPages: Math.ceil((count || 0) / limit),
+        },
+      });
+    } catch (error: any) {
+      return ResponseHelper.error(res, error.message);
+    }
+  };
 
-    res.status(200).json({
-      status: 'success',
-      data: { user },
-    });
-  });
+  // Get user by ID
+  getById = async (req: Request, res: Response) => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, email, username, nama_lengkap, foto, no_telp, alamat, is_active, created_at, user_roles(role_id, roles(id, nama))')
+        .eq('id', req.params.id)
+        .single();
 
-  create = asyncHandler(async (req: Request, res: Response) => {
-    const data = createUserSchema.parse(req.body);
-    const user = await userService.create(data);
+      if (error || !data) {
+        return ResponseHelper.notFound(res, 'User tidak ditemukan');
+      }
 
-    res.status(201).json({
-      status: 'success',
-      message: 'User berhasil dibuat',
-      data: { user },
-    });
-  });
+      return ResponseHelper.success(res, { user: data });
+    } catch (error: any) {
+      return ResponseHelper.error(res, error.message);
+    }
+  };
 
-  update = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const data = updateUserSchema.parse(req.body);
-    const user = await userService.update(id, data);
+  // Get own profile
+  getProfile = async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user?.id;
+      if (!userId) return ResponseHelper.unauthorized(res);
 
-    res.status(200).json({
-      status: 'success',
-      message: 'User berhasil diperbarui',
-      data: { user },
-    });
-  });
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, email, username, nama_lengkap, foto, no_telp, alamat, is_active, created_at, user_roles(role_id, roles(id, nama))')
+        .eq('id', userId)
+        .single();
 
-  delete = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    await userService.delete(id);
+      if (error || !data) {
+        return ResponseHelper.notFound(res, 'User tidak ditemukan');
+      }
 
-    res.status(200).json({
-      status: 'success',
-      message: 'User berhasil dihapus',
-    });
-  });
+      return ResponseHelper.success(res, { user: data });
+    } catch (error: any) {
+      return ResponseHelper.error(res, error.message);
+    }
+  };
 
-  toggleActive = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const user = await userService.toggleActive(id);
+  // Update own profile
+  updateProfile = async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user?.id;
+      if (!userId) return ResponseHelper.unauthorized(res);
 
-    res.status(200).json({
-      status: 'success',
-      message: `User berhasil ${user.isActive ? 'diaktifkan' : 'dinonaktifkan'}`,
-      data: { user },
-    });
-  });
+      const updateData: any = {};
+      if (req.body.namaLengkap) updateData.nama_lengkap = req.body.namaLengkap;
+      if (req.body.noTelp !== undefined) updateData.no_telp = req.body.noTelp;
+      if (req.body.alamat !== undefined) updateData.alamat = req.body.alamat;
 
-  updateProfile = asyncHandler(async (req: Request, res: Response) => {
-    const userId = req.user!.id;
-    const data = updateProfileSchema.parse(req.body);
-    const user = await userService.updateProfile(userId, data, req.file);
+      const { error } = await supabase
+        .from('users')
+        .update(updateData)
+        .eq('id', userId);
 
-    res.status(200).json({
-      status: 'success',
-      message: 'Profil berhasil diperbarui',
-      data: { user },
-    });
-  });
+      if (error) throw error;
 
-  getProfile = asyncHandler(async (req: Request, res: Response) => {
-    const userId = req.user!.id;
-    const user = await userService.getById(userId);
-
-    res.status(200).json({
-      status: 'success',
-      data: { user },
-    });
-  });
-
-  changePassword = asyncHandler(async (req: Request, res: Response) => {
-    const userId = req.user!.id;
-    const { oldPassword, newPassword } = req.body;
-    await userService.changePassword(userId, oldPassword, newPassword);
-
-    res.status(200).json({
-      status: 'success',
-      message: 'Password berhasil diubah',
-    });
-  });
-
-  getByRole = asyncHandler(async (req: Request, res: Response) => {
-    const { role } = req.params;
-    const users = await userService.getByRole(role);
-
-    res.status(200).json({
-      status: 'success',
-      data: { items: users },
-    });
-  });
+      return ResponseHelper.success(res, null, 'Profile berhasil diupdate');
+    } catch (error: any) {
+      return ResponseHelper.error(res, error.message);
+    }
+  };
 }

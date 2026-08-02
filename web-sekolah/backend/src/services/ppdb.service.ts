@@ -1,150 +1,209 @@
 // src/services/ppdb.service.ts
 import { PPDBRepository } from '../repositories/ppdb.repository';
 import { AppError } from '../utils/AppError';
-import { uploadToCloudinary } from '../config/cloudinary';
+import { PaginationOptions } from '../utils/pagination';
+import { v4 as uuidv4 } from 'uuid';
 import prisma from '../config/database';
-import fs from 'fs/promises';
-import * as XLSX from 'xlsx';
-
-const ppdbRepository = new PPDBRepository();
 
 export class PPDBService {
-  async getInfo() {
-    const [setting, jurusan, tahunAjaran] = await Promise.all([
-      prisma.setting.findMany({
-        where: { key: { in: ['ppdb_open', 'ppdb_year', 'ppdb_quota'] } },
-      }),
-      prisma.jurusan.findMany(),
-      prisma.tahunAjaran.findFirst({ where: { isActive: true } }),
-    ]);
+  private ppdbRepository: PPDBRepository;
 
-    return {
-      isOpen: setting.find((s) => s.key === 'ppdb_open')?.value === 'true',
-      tahun: setting.find((s) => s.key === 'ppdb_year')?.value,
-      kuota: setting.find((s) => s.key === 'ppdb_quota')?.value,
-      jurusan,
-      tahunAjaran,
-    };
+  constructor() {
+    this.ppdbRepository = new PPDBRepository();
   }
 
-  async register(data: any, files: Express.Multer.File[]) {
-    const setting = await prisma.setting.findUnique({ where: { key: 'ppdb_open' } });
-    if (setting?.value !== 'true') {
-      throw new AppError('PPDB sedang ditutup', 400);
-    }
-
-    // Generate no pendaftaran
-    const count = await prisma.pPDB.count();
-    const noPendaftaran = `PPDB${new Date().getFullYear()}${String(count + 1).padStart(4, '0')}`;
-
-    const pendaftaran = await ppdbRepository.create({
-      ...data,
-      noPendaftaran,
-      tanggalLahir: new Date(data.tanggalLahir),
-      status: 'SUBMITTED',
-    });
-
-    // Upload berkas
-    for (const file of files) {
-      let url = '';
-      if (process.env.CLOUDINARY_CLOUD_NAME) {
-        const result = await uploadToCloudinary(file.path, `ppdb/${pendaftaran.id}`);
-        url = result.secure_url;
-        await fs.unlink(file.path);
-      } else {
-        url = `/uploads/documents/${file.filename}`;
-      }
-
-      const jenis = file.fieldname.replace('_file', '').toUpperCase();
-      await prisma.pPDBBerkas.create({
-        data: {
-          ppdbId: pendaftaran.id,
-          nama: file.originalname,
-          jenis,
-          url,
-        },
-      });
-    }
-
-    return pendaftaran;
-  }
-
-  async checkStatus(noPendaftaran: string) {
-    const pendaftaran = await ppdbRepository.findByNoPendaftaran(noPendaftaran);
-    if (!pendaftaran) throw new AppError('Pendaftaran tidak ditemukan', 404);
-
-    return {
-      noPendaftaran: pendaftaran.noPendaftaran,
-      nama: pendaftaran.namaLengkap,
-      status: pendaftaran.status,
-      jurusan: pendaftaran.jurusan.nama,
-      catatan: pendaftaran.catatan,
-    };
-  }
-
-  async getAll(options: any, filters: any) {
+  async getAll(options: PaginationOptions, filters: any) {
     const where: any = {};
+
+    if (filters.status) {
+      where.status = filters.status;
+    }
+
+    if (filters.jurusanId) {
+      where.jurusanId = filters.jurusanId;
+    }
+
+    if (filters.tahunAjaranId) {
+      where.tahunAjaranId = filters.tahunAjaranId;
+    }
 
     if (filters.search) {
       where.OR = [
         { namaLengkap: { contains: filters.search, mode: 'insensitive' } },
-        { noPendaftaran: { contains: filters.search } },
-        { nisn: { contains: filters.search } },
+        { noPendaftaran: { contains: filters.search, mode: 'insensitive' } },
+        { nisn: { contains: filters.search, mode: 'insensitive' } },
       ];
     }
 
-    if (filters.status) where.status = filters.status;
-    if (filters.jurusanId) where.jurusanId = filters.jurusanId;
-
-    return ppdbRepository.findAll(options, where);
+    return this.ppdbRepository.findAll(options, where);
   }
 
   async getById(id: string) {
-    const pendaftaran = await ppdbRepository.findById(id);
-    if (!pendaftaran) throw new AppError('Pendaftaran tidak ditemukan', 404);
-    return pendaftaran;
+    const ppdb = await this.ppdbRepository.findById(id);
+    if (!ppdb) {
+      throw new AppError('Data PPDB tidak ditemukan', 404);
+    }
+    return ppdb;
   }
 
-  async updateStatus(id: string, status: string, verifierId: string, catatan?: string) {
-    return ppdbRepository.update(id, {
-      status,
-      catatan,
+  async getByNoPendaftaran(noPendaftaran: string) {
+    const ppdb = await this.ppdbRepository.findByNoPendaftaran(noPendaftaran);
+    if (!ppdb) {
+      throw new AppError('Data PPDB tidak ditemukan', 404);
+    }
+    return ppdb;
+  }
+
+  async create(data: any) {
+    // Generate registration number
+    const noPendaftaran = await this.generateNoPendaftaran();
+
+    const ppdb = await this.ppdbRepository.create({
+      ...data,
+      noPendaftaran,
+      status: 'DRAFT',
+      tanggalLahir: new Date(data.tanggalLahir),
+    });
+
+    return ppdb;
+  }
+
+  async update(id: string, data: any) {
+    const existing = await this.ppdbRepository.findById(id);
+    if (!existing) {
+      throw new AppError('Data PPDB tidak ditemukan', 404);
+    }
+
+    if (existing.status !== 'DRAFT') {
+      throw new AppError('Data yang sudah disubmit tidak dapat diubah', 400);
+    }
+
+    return this.ppdbRepository.update(id, data);
+  }
+
+  async submit(id: string) {
+    const existing = await this.ppdbRepository.findById(id);
+    if (!existing) {
+      throw new AppError('Data PPDB tidak ditemukan', 404);
+    }
+
+    if (existing.status !== 'DRAFT') {
+      throw new AppError('Data sudah disubmit', 400);
+    }
+
+    // Check required documents
+    const requiredDocs = ['IJAZAH', 'SKHUN', 'KK', 'AKTE', 'FOTO'];
+    const uploadedDocs = existing.berkas.map((b: any) => b.jenis);
+
+    for (const doc of requiredDocs) {
+      if (!uploadedDocs.includes(doc)) {
+        throw new AppError(`Berkas ${doc} belum diupload`, 400);
+      }
+    }
+
+    return this.ppdbRepository.update(id, { status: 'SUBMITTED' });
+  }
+
+  async verify(id: string, data: { status: string; catatan?: string }, verifierId: string) {
+    const existing = await this.ppdbRepository.findById(id);
+    if (!existing) {
+      throw new AppError('Data PPDB tidak ditemukan', 404);
+    }
+
+    return this.ppdbRepository.update(id, {
+      status: data.status,
+      catatan: data.catatan,
       verifiedBy: verifierId,
       verifiedAt: new Date(),
     });
   }
 
-  async verifyBerkas(berkasId: string, isVerified: boolean, catatan?: string) {
-    return prisma.pPDBBerkas.update({
-      where: { id: berkasId },
-      data: { isVerified, catatan },
-    });
-  }
+  async uploadBerkas(id: string, fileData: { nama: string; jenis: string; url: string }) {
+    const existing = await this.ppdbRepository.findById(id);
+    if (!existing) {
+      throw new AppError('Data PPDB tidak ditemukan', 404);
+    }
 
-  async exportExcel(filters: any) {
-    const data = await this.getAll({ page: 1, limit: 10000 }, filters);
-    
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(
-      data.items.map((s: any) => ({
-        'No Pendaftaran': s.noPendaftaran,
-        'Nama': s.namaLengkap,
-        'NISN': s.nisn,
-        'Asal Sekolah': s.asalSekolah,
-        'Jurusan': s.jurusan.nama,
-        'Status': s.status,
-        'Tanggal Daftar': s.createdAt,
-      }))
-    );
-    
-    XLSX.utils.book_append_sheet(wb, ws, 'PPDB');
-    return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    return prisma.pPDBBerkas.create({
+      data: {
+        ppdbId: id,
+        nama: fileData.nama,
+        jenis: fileData.jenis,
+        url: fileData.url,
+      },
+    });
   }
 
   async getStats() {
-    return prisma.pPDB.groupBy({
-      by: ['status', 'jurusanId'],
-      _count: true,
+    const [
+      totalPendaftar,
+      diterima,
+      ditolak,
+      menunggu,
+    ] = await Promise.all([
+      prisma.pPDB.count(),
+      prisma.pPDB.count({ where: { status: 'ACCEPTED' } }),
+      prisma.pPDB.count({ where: { status: 'REJECTED' } }),
+      prisma.pPDB.count({
+        where: { status: { in: ['SUBMITTED', 'VERIFIED'] } },
+      }),
+    ]);
+
+    // Per jurusan stats
+    const perJurusan = await prisma.jurusan.findMany({
+      include: {
+        _count: {
+          select: { ppdb: true },
+        },
+      },
     });
+
+    return {
+      totalPendaftar,
+      diterima,
+      ditolak,
+      menunggu,
+      perJurusan: perJurusan.map((j) => ({
+        jurusan: j.nama,
+        jumlah: j._count.ppdb,
+      })),
+    };
+  }
+
+  async exportData(filters: any) {
+    const where: any = {};
+
+    if (filters.status) {
+      where.status = filters.status;
+    }
+
+    if (filters.jurusanId) {
+      where.jurusanId = filters.jurusanId;
+    }
+
+    const data = await prisma.pPDB.findMany({
+      where,
+      include: {
+        jurusan: { select: { nama: true } },
+        berkas: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return data;
+  }
+
+  private async generateNoPendaftaran(): Promise<string> {
+    const year = new Date().getFullYear().toString().slice(-2);
+    const count = await prisma.pPDB.count({
+      where: {
+        createdAt: {
+          gte: new Date(new Date().getFullYear(), 0, 1),
+        },
+      },
+    });
+
+    const sequence = (count + 1).toString().padStart(4, '0');
+    return `PPDB${year}${sequence}`;
   }
 }
