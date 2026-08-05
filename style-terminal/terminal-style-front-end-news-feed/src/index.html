@@ -1,0 +1,402 @@
+<!-- ══ TOP BAR ══ -->
+<div class="topbar">
+	<div class="tb-left">
+		<span class="dot dot-r"></span>
+		<span class="dot dot-y"></span>
+		<span class="dot dot-g"></span>
+		<span class="logo">TERM<span class="logo-sep">://</span>NEWS</span>
+		<span class="ver">v2.4.1</span>
+	</div>
+	<div class="tb-center">
+		<span class="status"><span class="stat-dot"></span> CONNECTED · 12 FEEDS</span>
+	</div>
+	<div class="tb-right">
+		<span class="meta-item">CPU <b id="cpu">04%</b></span>
+		<span class="meta-item">MEM <b id="mem">61%</b></span>
+		<span class="meta-item alert"><b id="alerts">3</b> ALERTS</span>
+		<span class="meta-item time" id="clock">00:00:00</span>
+	</div>
+</div>
+
+<!-- ══ TICKER ══ -->
+<div class="ticker">
+	<span class="tk-label">▲ LIVE</span>
+	<div class="tk-track">
+		<div class="tk-inner" id="ticker">
+			<span class="tk-item"><b class="tk-tag css">CSS</b> Container queries hit baseline support across all major browsers</span>
+			<span class="tk-sep">◆</span>
+			<span class="tk-item"><b class="tk-tag js">JS</b> ECMAScript 2026 adds native Set methods to Array prototype</span>
+			<span class="tk-sep">◆</span>
+			<span class="tk-item"><b class="tk-tag tool">TOOL</b> Vite 7.0 released with 40% faster cold start</span>
+			<span class="tk-sep">◆</span>
+			<span class="tk-item"><b class="tk-tag css">CSS</b> Anchor positioning now stable in Safari 18.4</span>
+			<span class="tk-sep">◆</span>
+			<span class="tk-item"><b class="tk-tag react">REACT</b> React 20 release candidate available for testing</span>
+			<span class="tk-sep">◆</span>
+			<span class="tk-item"><b class="tk-tag perf">PERF</b> INP becomes Core Web Vital metric officially</span>
+			<span class="tk-sep">◆</span>
+		</div>
+	</div>
+</div>
+
+<!-- ══ MAIN ══ -->
+<main class="main">
+
+	<!-- ─── LEFT SIDEBAR ─── -->
+	<aside class="side side-l">
+		<div class="panel">
+			<div class="panel-h">
+				<span>FILTER</span>
+				<span class="pn-num">[F]</span>
+			</div>
+			<ul class="filter-list" id="filters">
+				<li class="active" data-filter="all"><span class="ck">▸</span> ALL <em>12</em></li>
+				<li data-filter="css"><span class="ck">▸</span> CSS <em>4</em></li>
+				<li data-filter="js"><span class="ck">▸</span> JAVASCRIPT <em>3</em></li>
+				<li data-filter="react"><span class="ck">▸</span> REACT <em>2</em></li>
+				<li data-filter="tool"><span class="ck">▸</span> TOOLING <em>2</em></li>
+				<li data-filter="perf"><span class="ck">▸</span> PERF <em>1</em></li>
+			</ul>
+		</div>
+
+		<div class="panel">
+			<div class="panel-h">
+				<span>SORT</span>
+				<span class="pn-num">[S]</span>
+			</div>
+			<ul class="filter-list" id="sorts">
+				<li class="active" data-sort="date"><span class="ck">▸</span> NEWEST</li>
+				<li data-sort="rating"><span class="ck">▸</span> HIGHEST RATED</li>
+				<li data-sort="reads"><span class="ck">▸</span> MOST READ</li>
+				<li data-sort="time"><span class="ck">▸</span> QUICK READS</li>
+			</ul>
+		</div>
+
+		<div class="panel">
+			<div class="panel-h">
+				<span>SHORTCUTS</span>
+				<span class="pn-num">[?]</span>
+			</div>
+			<ul class="kb-list">
+				<li><kbd>J</kbd><kbd>K</kbd> Navigate</li>
+				<li><kbd>O</kbd> Open article</li>
+				<li><kbd>M</kbd> Mark read</li>
+				<li><kbd>/</kbd> Search</li>
+				<li><kbd>R</kbd> Refresh</li>
+			</ul>
+		</div>
+	</aside>
+
+	<!-- ─── FEED ─── -->
+	<section class="feed" id="feed">
+
+		<article class="card" data-cat="css" data-rating="4.8" data-reads="12400" data-time="6">
+			<header class="card-h">
+				<span class="idx">№ 01</span>
+				<span class="src src-css">CSS-TRICKS</span>
+				<time datetime="2026-05-13T14:22">2 HOURS AGO</time>
+				<span class="badge badge-new">NEW</span>
+			</header>
+			<h2>A Complete Guide to Container Queries in 2026</h2>
+			<p>Container queries have officially hit baseline support across every major browser. This deep dive covers everything from basic syntax to advanced techniques like style queries, container units, and the new <code>@container</code> scoped naming patterns that have emerged from the community.</p>
+			<footer class="card-f">
+				<span class="meta"><span class="ico">★</span> 4.8</span>
+				<span class="meta"><span class="ico">◎</span> 12.4K</span>
+				<span class="meta"><span class="ico">⌖</span> 6 MIN</span>
+				<span class="tags">
+					<span class="tag">@container</span>
+					<span class="tag">responsive</span>
+					<span class="tag">layout</span>
+				</span>
+			</footer>
+		</article>
+
+		<article class="card" data-cat="css" data-rating="4.9" data-reads="18900" data-time="4">
+			<header class="card-h">
+				<span class="idx">№ 02</span>
+				<span class="src src-css">MDN WEB DOCS</span>
+				<time datetime="2026-05-13T11:08">5 HOURS AGO</time>
+			</header>
+			<h2>The :has() Selector Is Now Baseline — Here's What That Unlocks</h2>
+			<p>The relational pseudo-class <code>:has()</code> has been called "the parent selector we've always wanted." Now that it's officially baseline, MDN walks through the patterns it enables: form validation styling, smart card layouts, and conditional sibling targeting that previously required JavaScript.</p>
+			<footer class="card-f">
+				<span class="meta"><span class="ico">★</span> 4.9</span>
+				<span class="meta"><span class="ico">◎</span> 18.9K</span>
+				<span class="meta"><span class="ico">⌖</span> 4 MIN</span>
+				<span class="tags">
+					<span class="tag">selectors</span>
+					<span class="tag">pseudo-class</span>
+				</span>
+			</footer>
+		</article>
+
+		<article class="card" data-cat="js" data-rating="4.6" data-reads="9800" data-time="8">
+			<header class="card-h">
+				<span class="idx">№ 03</span>
+				<span class="src src-js">WEB.DEV</span>
+				<time datetime="2026-05-13T09:34">7 HOURS AGO</time>
+			</header>
+			<h2>Building Smooth Page Transitions with the View Transitions API</h2>
+			<p>The View Transitions API is no longer experimental — it shipped with Chrome 124 and Safari 18. This Chrome team walkthrough builds a complete photo gallery app with morphing transitions, covering both same-document and cross-document patterns, plus performance considerations for production.</p>
+			<footer class="card-f">
+				<span class="meta"><span class="ico">★</span> 4.6</span>
+				<span class="meta"><span class="ico">◎</span> 9.8K</span>
+				<span class="meta"><span class="ico">⌖</span> 8 MIN</span>
+				<span class="tags">
+					<span class="tag">api</span>
+					<span class="tag">animation</span>
+				</span>
+			</footer>
+		</article>
+
+		<article class="card" data-cat="perf" data-rating="4.7" data-reads="14200" data-time="12">
+			<header class="card-h">
+				<span class="idx">№ 04</span>
+				<span class="src src-perf">SMASHING MAG</span>
+				<time datetime="2026-05-13T07:18">9 HOURS AGO</time>
+			</header>
+			<h2>Your Bundle Is Still Too Big — And Here's Why</h2>
+			<p>Despite all the modern tooling, the median JavaScript payload has grown 12% year-over-year. Addy Osmani breaks down the hidden cost of "free" features: polyfills you don't need, duplicate dependencies, framework runtime overhead, and the seductive trap of adding "just one more" utility library.</p>
+			<footer class="card-f">
+				<span class="meta"><span class="ico">★</span> 4.7</span>
+				<span class="meta"><span class="ico">◎</span> 14.2K</span>
+				<span class="meta"><span class="ico">⌖</span> 12 MIN</span>
+				<span class="tags">
+					<span class="tag">performance</span>
+					<span class="tag">bundling</span>
+					<span class="tag">webvitals</span>
+				</span>
+			</footer>
+		</article>
+
+		<article class="card" data-cat="css" data-rating="4.9" data-reads="22100" data-time="10">
+			<header class="card-h">
+				<span class="idx">№ 05</span>
+				<span class="src src-css">JOSHCOMEAU.COM</span>
+				<time datetime="2026-05-12T22:05">17 HOURS AGO</time>
+				<span class="badge badge-hot">HOT</span>
+			</header>
+			<h2>An Interactive Guide to CSS Grid Subgrid</h2>
+			<p>Josh's signature interactive style returns to demystify subgrid. With editable demos, side-by-side comparisons of grid vs subgrid behavior, and real-world layout patterns, this is the comprehensive resource the spec needed. Includes a downloadable cheatsheet.</p>
+			<footer class="card-f">
+				<span class="meta"><span class="ico">★</span> 4.9</span>
+				<span class="meta"><span class="ico">◎</span> 22.1K</span>
+				<span class="meta"><span class="ico">⌖</span> 10 MIN</span>
+				<span class="tags">
+					<span class="tag">grid</span>
+					<span class="tag">subgrid</span>
+					<span class="tag">interactive</span>
+				</span>
+			</footer>
+		</article>
+
+		<article class="card" data-cat="react" data-rating="4.5" data-reads="8400" data-time="7">
+			<header class="card-h">
+				<span class="idx">№ 06</span>
+				<span class="src src-react">A LIST APART</span>
+				<time datetime="2026-05-12T18:42">21 HOURS AGO</time>
+			</header>
+			<h2>The Return of Server-Rendered HTML</h2>
+			<p>After a decade of client-side rendering dominance, we're watching the pendulum swing back. From React Server Components to Astro's island architecture to good old PHP, the web is rediscovering that sending HTML over the wire is often the right answer. A measured look at why.</p>
+			<footer class="card-f">
+				<span class="meta"><span class="ico">★</span> 4.5</span>
+				<span class="meta"><span class="ico">◎</span> 8.4K</span>
+				<span class="meta"><span class="ico">⌖</span> 7 MIN</span>
+				<span class="tags">
+					<span class="tag">ssr</span>
+					<span class="tag">architecture</span>
+				</span>
+			</footer>
+		</article>
+
+		<article class="card" data-cat="tool" data-rating="4.7" data-reads="6700" data-time="5">
+			<header class="card-h">
+				<span class="idx">№ 07</span>
+				<span class="src src-tool">CODEPEN BLOG</span>
+				<time datetime="2026-05-12T15:11">1 DAY AGO</time>
+			</header>
+			<h2>Spotlight: Generative SVG Patterns You Can Actually Use</h2>
+			<p>This month's featured collection showcases nine creators who are pushing SVG into wild territory — from CSS-only fractal generators to interactive Lissajous wave players. Each pen includes a "remix" link so you can fork and customize the patterns for your own projects.</p>
+			<footer class="card-f">
+				<span class="meta"><span class="ico">★</span> 4.7</span>
+				<span class="meta"><span class="ico">◎</span> 6.7K</span>
+				<span class="meta"><span class="ico">⌖</span> 5 MIN</span>
+				<span class="tags">
+					<span class="tag">svg</span>
+					<span class="tag">generative</span>
+					<span class="tag">codepen</span>
+				</span>
+			</footer>
+		</article>
+
+		<article class="card" data-cat="js" data-rating="4.4" data-reads="5200" data-time="3">
+			<header class="card-h">
+				<span class="idx">№ 08</span>
+				<span class="src src-js">FRONTEND FOCUS</span>
+				<time datetime="2026-05-12T12:00">1 DAY AGO</time>
+			</header>
+			<h2>Weekly Roundup #648 — TC39 Notes, Wasm GC, and More</h2>
+			<p>This week: notes from the latest TC39 meeting (decorators are advancing, Records & Tuples are not), the WebAssembly GC proposal hits Stage 4, a deep dive on the new Iterator Helpers, and a curated list of seven open-source releases worth your attention.</p>
+			<footer class="card-f">
+				<span class="meta"><span class="ico">★</span> 4.4</span>
+				<span class="meta"><span class="ico">◎</span> 5.2K</span>
+				<span class="meta"><span class="ico">⌖</span> 3 MIN</span>
+				<span class="tags">
+					<span class="tag">newsletter</span>
+					<span class="tag">tc39</span>
+				</span>
+			</footer>
+		</article>
+
+		<article class="card" data-cat="css" data-rating="4.8" data-reads="11500" data-time="6">
+			<header class="card-h">
+				<span class="idx">№ 09</span>
+				<span class="src src-css">STEFAN JUDIS</span>
+				<time datetime="2026-05-11T20:30">2 DAYS AGO</time>
+			</header>
+			<h2>Hidden CSS Features You'll Actually Use Tomorrow</h2>
+			<p>Forget the headlines — Stefan digs up the quieter additions: <code>scrollbar-gutter</code>, <code>field-sizing</code>, the new <code>:host-context()</code>, and a use case for <code>text-wrap: pretty</code> that finally makes sense. Each tip comes with a CodePen demo you can fork.</p>
+			<footer class="card-f">
+				<span class="meta"><span class="ico">★</span> 4.8</span>
+				<span class="meta"><span class="ico">◎</span> 11.5K</span>
+				<span class="meta"><span class="ico">⌖</span> 6 MIN</span>
+				<span class="tags">
+					<span class="tag">css</span>
+					<span class="tag">tips</span>
+				</span>
+			</footer>
+		</article>
+
+		<article class="card" data-cat="tool" data-rating="4.6" data-reads="7800" data-time="9">
+			<header class="card-h">
+				<span class="idx">№ 10</span>
+				<span class="src src-tool">PICCALILLI</span>
+				<time datetime="2026-05-11T16:14">2 DAYS AGO</time>
+			</header>
+			<h2>Practical Custom Properties for Design Systems</h2>
+			<p>Andy Bell makes the case for fewer tokens, smarter naming, and using custom properties as a system rather than as variables. Includes a working example design system built from just 24 root tokens and the composition patterns that scale them to entire products.</p>
+			<footer class="card-f">
+				<span class="meta"><span class="ico">★</span> 4.6</span>
+				<span class="meta"><span class="ico">◎</span> 7.8K</span>
+				<span class="meta"><span class="ico">⌖</span> 9 MIN</span>
+				<span class="tags">
+					<span class="tag">design-systems</span>
+					<span class="tag">custom-properties</span>
+				</span>
+			</footer>
+		</article>
+
+		<article class="card" data-cat="css" data-rating="4.5" data-reads="4900" data-time="4">
+			<header class="card-h">
+				<span class="idx">№ 11</span>
+				<span class="src src-css">BRAM.US</span>
+				<time datetime="2026-05-11T10:00">3 DAYS AGO</time>
+			</header>
+			<h2>What's New in CSS — May 2026 Edition</h2>
+			<p>Bramus' monthly roundup of CSS news, specs, and browser updates. This month: anchor positioning hits Safari, the <code>@starting-style</code> rule lands universally, and a heads-up about the deprecation of <code>::-webkit-scrollbar</code> in favor of the new scrollbar properties.</p>
+			<footer class="card-f">
+				<span class="meta"><span class="ico">★</span> 4.5</span>
+				<span class="meta"><span class="ico">◎</span> 4.9K</span>
+				<span class="meta"><span class="ico">⌖</span> 4 MIN</span>
+				<span class="tags">
+					<span class="tag">news</span>
+					<span class="tag">browsers</span>
+				</span>
+			</footer>
+		</article>
+
+		<article class="card" data-cat="react" data-rating="4.3" data-reads="16800" data-time="11">
+			<header class="card-h">
+				<span class="idx">№ 12</span>
+				<span class="src src-react">KENT C. DODDS</span>
+				<time datetime="2026-05-10T19:25">4 DAYS AGO</time>
+			</header>
+			<h2>Why I Stopped Reaching for useEffect First</h2>
+			<p>An honest retrospective on Kent's evolved relationship with React's most misused hook. Walks through five common useEffect patterns and the better primitives that have emerged: derived state, event handlers, server components, and the new <code>use()</code> hook for async data.</p>
+			<footer class="card-f">
+				<span class="meta"><span class="ico">★</span> 4.3</span>
+				<span class="meta"><span class="ico">◎</span> 16.8K</span>
+				<span class="meta"><span class="ico">⌖</span> 11 MIN</span>
+				<span class="tags">
+					<span class="tag">react</span>
+					<span class="tag">hooks</span>
+					<span class="tag">patterns</span>
+				</span>
+			</footer>
+		</article>
+
+	</section>
+
+	<!-- ─── RIGHT SIDEBAR ─── -->
+	<aside class="side side-r">
+
+		<div class="panel">
+			<div class="panel-h">
+				<span>ACTIVITY · 24H</span>
+				<span class="live-dot"></span>
+			</div>
+			<div class="spark" id="spark">
+				<svg viewBox="0 0 200 60" preserveAspectRatio="none">
+					<polyline id="spark-line" fill="none" stroke="currentColor" stroke-width="1.5" points="" />
+					<polyline id="spark-fill" fill="currentColor" fill-opacity="0.12" stroke="none" points="" />
+				</svg>
+				<div class="spark-meta">
+					<span>PEAK <b>2.4K/hr</b></span>
+					<span>NOW <b id="live-readers">847</b></span>
+				</div>
+			</div>
+		</div>
+
+		<div class="panel">
+			<div class="panel-h">
+				<span>TRENDING</span>
+				<span class="pn-num">[T]</span>
+			</div>
+			<ol class="trend-list">
+				<li><span class="rank">01</span> #container-queries <em>+412%</em></li>
+				<li><span class="rank">02</span> #has-selector <em>+289%</em></li>
+				<li><span class="rank">03</span> #subgrid <em>+186%</em></li>
+				<li><span class="rank">04</span> #view-transitions <em>+147%</em></li>
+				<li><span class="rank">05</span> #anchor-positioning <em>+93%</em></li>
+			</ol>
+		</div>
+
+		<div class="panel">
+			<div class="panel-h">
+				<span>SOURCES</span>
+				<span class="pn-num">[12]</span>
+			</div>
+			<ul class="src-list">
+				<li><span class="bar"><span style="width:80%"></span></span><span>CSS-Tricks</span><em>4</em></li>
+				<li><span class="bar"><span style="width:60%"></span></span><span>MDN</span><em>3</em></li>
+				<li><span class="bar"><span style="width:40%"></span></span><span>web.dev</span><em>2</em></li>
+				<li><span class="bar"><span style="width:30%"></span></span><span>Smashing</span><em>1</em></li>
+				<li><span class="bar"><span style="width:30%"></span></span><span>Piccalilli</span><em>1</em></li>
+				<li><span class="bar"><span style="width:20%"></span></span><span>+ 7 more</span><em></em></li>
+			</ul>
+		</div>
+
+		<div class="panel ascii">
+			<pre>
+   _____ _____ ____  __  __
+  |_   _| ____|  _ \|  \/  |
+    | | |  _| | |_) | |\/| |
+    | | | |___|  _ <| |  | |
+    |_| |_____|_| \_\_|  |_|
+
+  [ NEWS · 2026 · LIVE ]
+      </pre>
+		</div>
+	</aside>
+
+</main>
+
+<!-- ══ COMMAND BAR ══ -->
+<div class="cmdbar">
+	<span class="prompt">$</span>
+	<input type="text" id="cmd" placeholder="type a command, search, or press / to focus" spellcheck="false" autocomplete="off">
+	<span class="hint"><kbd>⌘</kbd> <kbd>K</kbd> for palette</span>
+</div>
+
+<!-- ══ SCAN LINES ══ -->
+<div class="scanlines"></div>

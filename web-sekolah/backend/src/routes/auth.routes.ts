@@ -7,24 +7,15 @@ const authController = new AuthController();
 
 // Public routes
 router.post('/login', authController.login);
+router.post('/register', authController.register);
 router.post('/refresh-token', authController.refreshToken);
 
 // Protected routes
 router.get('/me', authenticate, authController.me);
 router.post('/logout', authenticate, authController.logout);
-
-// Verify token
+router.post('/change-password', authenticate, authController.changePassword);
 router.get('/verify', authenticate, (req, res) => {
-  res.status(200).json({
-    status: 'success',
-    message: 'Token valid',
-    data: {
-      user: {
-        id: (req as any).user?.id,
-        email: (req as any).user?.email,
-      },
-    },
-  });
+    res.json({ status: 'success', message: 'Token valid', data: { user: (req as any).user } });
 });
 
 export default router;

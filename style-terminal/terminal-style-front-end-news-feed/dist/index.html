@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Terminal-Style Front-End News Feed</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&display=swap" rel="stylesheet"><link>
+	<style>
+		@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&display=swap");
+
+:root {
+	--bg: #0a0a0c;
+	--surface: #131316;
+	--surface-2: #1a1a1f;
+	--border: #26262d;
+	--border-2: #34343d;
+
+	--fg: #e8e8ed;
+	--fg-2: #8a8a93;
+	--fg-3: #56565d;
+
+	--amber: #ffb020;
+	--cyan: #00d4ff;
+	--magenta: #ff2da6;
+	--green: #00ff7f;
+	--red: #ff3366;
+	--violet: #b388ff;
+
+	--mono: "JetBrains Mono", "Courier New", monospace;
+}
+
+*,
+*::before,
+*::after {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+html,
+body {
+	width: 100%;
+	height: 100vh;
+	overflow: hidden;
+}
+
+body {
+	background: var(--bg);
+	color: var(--fg);
+	font-family: var(--mono);
+	font-size: 13px;
+	line-height: 1.45;
+	font-weight: 400;
+	-webkit-font-smoothing: antialiased;
+	display: grid;
+	grid-template-rows: 42px 28px 1fr 36px;
+	user-select: none;
+}
+
+::selection {
+	background: var(--amber);
+	color: #000;
+}
+
+/* ══ TOP BAR ══ */
+.topbar {
+	background: var(--surface);
+	border-bottom: 1px solid var(--border);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0 14px;
+	font-size: 11px;
+	letter-spacing: 0.06em;
+}
+
+.tb-left,
+.tb-right,
+.tb-center {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+}
+
+.dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+}
+.dot-r {
+	background: #ff5f57;
+}
+.dot-y {
+	background: #febc2e;
+}
+.dot-g {
+	background: #28c840;
+}
+
+.logo {
+	font-weight: 800;
+	letter-spacing: 0.15em;
+	color: var(--amber);
+	margin-left: 10px;
+	text-shadow: 0 0 12px rgba(255, 176, 32, 0.4);
+}
+.logo-sep {
+	color: var(--fg-3);
+	margin: 0 1px;
+}
+.ver {
+	color: var(--fg-3);
+	font-size: 10px;
+	letter-spacing: 0.15em;
+}
+
+.status {
+	color: var(--fg-2);
+	font-size: 10.5px;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.stat-dot {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: var(--green);
+	box-shadow: 0 0 8px var(--green);
+	animation: blip 2s ease-in-out infinite;
+}
+@keyframes blip {
+	0%,
+	100% {
+		opacity: 0.7;
+	}
+	50% {
+		opacity: 1;
+		box-shadow: 0 0 12px var(--green);
+	}
+}
+
+.meta-item {
+	font-size: 10.5px;
+	letter-spacing: 0.12em;
+	color: var(--fg-2);
+	text-transform: uppercase;
+}
+.meta-item b {
+	color: var(--cyan);
+	font-weight: 700;
+	margin-left: 4px;
+}
+.meta-item.alert b {
+	color: var(--magenta);
+	animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+	50% {
+		opacity: 0.5;
+	}
+}
+.time {
+	color: var(--amber);
+	font-variant-numeric: tabular-nums;
+}
+
+/* ══ TICKER ══ */
+.ticker {
+	background: #000;
+	border-bottom: 1px solid var(--border);
+	display: flex;
+	align-items: center;
+	overflow: hidden;
+}
+.tk-label {
+	flex-shrink: 0;
+	background: var(--red);
+	color: #fff;
+	font-size: 10px;
+	letter-spacing: 0.25em;
+	padding: 0 14px;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	font-weight: 800;
+}
+.tk-track {
+	flex: 1;
+	overflow: hidden;
+	white-space: nowrap;
+	position: relative;
+}
+.tk-inner {
+	display: inline-block;
+	animation: scroll 50s linear infinite;
+	padding-left: 100%;
+}
+.tk-item {
+	font-size: 11.5px;
+	color: var(--fg);
+	margin: 0 18px;
+	letter-spacing: 0.02em;
+}
+.tk-sep {
+	color: var(--fg-3);
+	margin: 0 6px;
+}
+.tk-tag {
+	display: inline-block;
+	font-size: 9.5px;
+	font-weight: 800;
+	letter-spacing: 0.2em;
+	padding: 2px 6px;
+	margin-right: 8px;
+	vertical-align: middle;
+}
+.tk-tag.css {
+	background: rgba(0, 212, 255, 0.18);
+	color: var(--cyan);
+}
+.tk-tag.js {
+	background: rgba(255, 176, 32, 0.18);
+	color: var(--amber);
+}
+.tk-tag.tool {
+	background: rgba(0, 255, 127, 0.18);
+	color: var(--green);
+}
+.tk-tag.react {
+	background: rgba(179, 136, 255, 0.18);
+	color: var(--violet);
+}
+.tk-tag.perf {
+	background: rgba(255, 45, 166, 0.18);
+	color: var(--magenta);
+}
+@keyframes scroll {
+	from {
+		transform: translateX(0);
+	}
+	to {
+		transform: translateX(-100%);
+	}
+}
+
+/* ══ MAIN GRID ══ */
+.main {
+	display: grid;
+	grid-template-columns: 200px 1fr 260px;
+	overflow: hidden;
+}
+
+/* ── SIDEBARS ── */
+.side {
+	background: var(--surface);
+	border-right: 1px solid var(--border);
+	overflow-y: auto;
+	padding: 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+.side-r {
+	border-right: none;
+	border-left: 1px solid var(--border);
+}
+
+.panel {
+	background: var(--bg);
+	border: 1px solid var(--border);
+}
+.panel-h {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	font-size: 9.5px;
+	letter-spacing: 0.25em;
+	color: var(--amber);
+	padding: 7px 10px;
+	border-bottom: 1px solid var(--border);
+	background: var(--surface-2);
+	text-transform: uppercase;
+}
+.pn-num {
+	color: var(--fg-3);
+	font-size: 9px;
+}
+.live-dot {
+	width: 6px;
+	height: 6px;
+	background: var(--green);
+	border-radius: 50%;
+	box-shadow: 0 0 6px var(--green);
+	animation: blip 1.5s ease-in-out infinite;
+}
+
+/* ── FILTER LISTS ── */
+.filter-list {
+	list-style: none;
+	padding: 4px 0;
+}
+.filter-list li {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 5px 10px;
+	font-size: 10.5px;
+	letter-spacing: 0.12em;
+	cursor: pointer;
+	color: var(--fg-2);
+	transition: all 0.15s;
+}
+.filter-list li:hover {
+	color: var(--fg);
+	background: var(--surface-2);
+}
+.filter-list li.active {
+	color: var(--amber);
+	background: var(--surface-2);
+}
+.filter-list li.active .ck {
+	color: var(--amber);
+}
+.filter-list .ck {
+	color: var(--fg-3);
+	font-size: 8px;
+}
+.filter-list em {
+	font-style: normal;
+	color: var(--fg-3);
+	font-size: 10px;
+}
+
+/* ── KEYBOARD SHORTCUTS ── */
+.kb-list {
+	list-style: none;
+	padding: 8px 10px;
+}
+.kb-list li {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 0;
+	font-size: 10px;
+	color: var(--fg-2);
+	letter-spacing: 0.08em;
+}
+kbd {
+	font-family: var(--mono);
+	background: var(--surface-2);
+	border: 1px solid var(--border-2);
+	padding: 1px 5px;
+	font-size: 9.5px;
+	color: var(--fg);
+	margin-right: 1px;
+}
+
+/* ══ FEED ══ */
+.feed {
+	overflow-y: auto;
+	padding: 14px;
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+.feed::-webkit-scrollbar {
+	width: 8px;
+}
+.feed::-webkit-scrollbar-track {
+	background: var(--bg);
+}
+.feed::-webkit-scrollbar-thumb {
+	background: var(--border-2);
+}
+
+/* ── ARTICLE CARD ── */
+.card {
+	background: var(--surface);
+	border: 1px solid var(--border);
+	padding: 16px 18px;
+	cursor: pointer;
+	transition: all 0.15s;
+	position: relative;
+	user-select: text;
+}
+.card:hover {
+	border-color: var(--amber);
+	background: var(--surface-2);
+	transform: translateX(2px);
+}
+.card.focused {
+	border-color: var(--amber);
+	background: var(--surface-2);
+	box-shadow: -2px 0 0 var(--amber);
+}
+.card.read {
+	opacity: 0.4;
+}
+.card.read .badge-new {
+	display: none;
+}
+
+.card-h {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 10px;
+	font-size: 10px;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	color: var(--fg-3);
+	flex-wrap: wrap;
+}
+.idx {
+	color: var(--amber);
+	font-weight: 700;
+}
+.src {
+	font-weight: 700;
+	padding: 2px 7px;
+	letter-spacing: 0.16em;
+}
+.src-css {
+	background: rgba(0, 212, 255, 0.15);
+	color: var(--cyan);
+}
+.src-js {
+	background: rgba(255, 176, 32, 0.15);
+	color: var(--amber);
+}
+.src-react {
+	background: rgba(179, 136, 255, 0.15);
+	color: var(--violet);
+}
+.src-tool {
+	background: rgba(0, 255, 127, 0.15);
+	color: var(--green);
+}
+.src-perf {
+	background: rgba(255, 45, 166, 0.15);
+	color: var(--magenta);
+}
+
+time {
+	color: var(--fg-2);
+}
+
+.badge {
+	font-size: 9px;
+	padding: 2px 6px;
+	font-weight: 800;
+	letter-spacing: 0.2em;
+}
+.badge-new {
+	background: var(--green);
+	color: #000;
+}
+.badge-hot {
+	background: var(--magenta);
+	color: #fff;
+	animation: pulse 2s ease-in-out infinite;
+}
+
+.card h2 {
+	font-family: var(--mono);
+	font-size: 18px;
+	font-weight: 700;
+	line-height: 1.3;
+	letter-spacing: -0.005em;
+	color: var(--fg);
+	margin-bottom: 8px;
+}
+.card:hover h2 {
+	color: var(--amber);
+}
+
+.card p {
+	font-size: 12.5px;
+	line-height: 1.65;
+	color: var(--fg-2);
+	margin-bottom: 12px;
+	font-weight: 300;
+}
+.card code {
+	font-family: var(--mono);
+	font-size: 11.5px;
+	background: var(--bg);
+	border: 1px solid var(--border);
+	padding: 1px 5px;
+	color: var(--amber);
+}
+
+.card-f {
+	display: flex;
+	align-items: center;
+	gap: 18px;
+	padding-top: 10px;
+	border-top: 1px solid var(--border);
+	font-size: 10px;
+	letter-spacing: 0.15em;
+	color: var(--fg-2);
+	text-transform: uppercase;
+	flex-wrap: wrap;
+}
+.meta {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+}
+.ico {
+	color: var(--amber);
+	font-size: 11px;
+}
+
+.tags {
+	margin-left: auto;
+	display: flex;
+	gap: 5px;
+	flex-wrap: wrap;
+}
+.tag {
+	font-size: 9.5px;
+	font-weight: 400;
+	padding: 2px 6px;
+	background: var(--bg);
+	border: 1px solid var(--border-2);
+	color: var(--fg-2);
+	letter-spacing: 0.08em;
+	text-transform: lowercase;
+}
+
+/* ══ RIGHT SIDEBAR PANELS ══ */
+.spark {
+	padding: 10px;
+	color: var(--cyan);
+}
+.spark svg {
+	width: 100%;
+	height: 50px;
+	display: block;
+}
+.spark-meta {
+	display: flex;
+	justify-content: space-between;
+	margin-top: 6px;
+	font-size: 9.5px;
+	letter-spacing: 0.15em;
+	color: var(--fg-3);
+	text-transform: uppercase;
+}
+.spark-meta b {
+	color: var(--green);
+	margin-left: 4px;
+	font-variant-numeric: tabular-nums;
+}
+
+.trend-list {
+	list-style: none;
+	padding: 6px 0;
+}
+.trend-list li {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 5px 10px;
+	font-size: 10.5px;
+	letter-spacing: 0.08em;
+	color: var(--fg-2);
+}
+.trend-list li:hover {
+	background: var(--surface-2);
+	color: var(--fg);
+}
+.rank {
+	color: var(--amber);
+	font-weight: 700;
+}
+.trend-list em {
+	font-style: normal;
+	margin-left: auto;
+	color: var(--green);
+	font-size: 9.5px;
+}
+
+.src-list {
+	list-style: none;
+	padding: 8px 10px;
+}
+.src-list li {
+	display: grid;
+	grid-template-columns: 50px 1fr auto;
+	align-items: center;
+	gap: 8px;
+	padding: 3px 0;
+	font-size: 10px;
+	color: var(--fg-2);
+	letter-spacing: 0.05em;
+}
+.bar {
+	height: 6px;
+	background: var(--surface-2);
+	display: block;
+	position: relative;
+}
+.bar span {
+	position: absolute;
+	inset: 0;
+	background: var(--amber);
+	width: 0;
+}
+.src-list em {
+	font-style: normal;
+	color: var(--fg-3);
+	font-size: 9.5px;
+}
+
+.ascii pre {
+	font-family: var(--mono);
+	font-size: 8.5px;
+	line-height: 1.15;
+	color: var(--amber);
+	padding: 12px;
+	letter-spacing: 0;
+	text-shadow: 0 0 8px rgba(255, 176, 32, 0.4);
+}
+
+/* ══ COMMAND BAR ══ */
+.cmdbar {
+	background: var(--surface);
+	border-top: 1px solid var(--border);
+	display: flex;
+	align-items: center;
+	padding: 0 14px;
+	gap: 10px;
+	font-size: 12px;
+}
+.prompt {
+	color: var(--green);
+	font-weight: 700;
+}
+#cmd {
+	flex: 1;
+	background: transparent;
+	border: none;
+	outline: none;
+	font-family: var(--mono);
+	color: var(--fg);
+	font-size: 12px;
+	caret-color: var(--amber);
+}
+#cmd::placeholder {
+	color: var(--fg-3);
+}
+.hint {
+	font-size: 10px;
+	color: var(--fg-3);
+	letter-spacing: 0.1em;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+/* ══ SCANLINES OVERLAY ══ */
+.scanlines {
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	z-index: 9999;
+	background: repeating-linear-gradient(
+		0deg,
+		transparent,
+		transparent 2px,
+		rgba(0, 0, 0, 0.18) 2px,
+		rgba(0, 0, 0, 0.18) 3px
+	);
+	mix-blend-mode: multiply;
+}
+
+/* ── HIDE FILTERED ── */
+.card.hidden {
+	display: none;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1080px) {
+	.main {
+		grid-template-columns: 180px 1fr;
+	}
+	.side-r {
+		display: none;
+	}
+}
+@media (max-width: 720px) {
+	.main {
+		grid-template-columns: 1fr;
+	}
+	.side-l {
+		display: none;
+	}
+	.tb-center,
+	.meta-item:not(.time) {
+		display: none;
+	}
+	.card h2 {
+		font-size: 15px;
+	}
+}
+	</style>
+
+  </head>
+    
+  <body>
+  <!-- ══ TOP BAR ══ -->
+<div class="topbar">
+	<div class="tb-left">
+		<span class="dot dot-r"></span>
+		<span class="dot dot-y"></span>
+		<span class="dot dot-g"></span>
+		<span class="logo">TERM<span class="logo-sep">://</span>NEWS</span>
+		<span class="ver">v2.4.1</span>
+	</div>
+	<div class="tb-center">
+		<span class="status"><span class="stat-dot"></span> CONNECTED · 12 FEEDS</span>
+	</div>
+	<div class="tb-right">
+		<span class="meta-item">CPU <b id="cpu">04%</b></span>
+		<span class="meta-item">MEM <b id="mem">61%</b></span>
+		<span class="meta-item alert"><b id="alerts">3</b> ALERTS</span>
+		<span class="meta-item time" id="clock">00:00:00</span>
+	</div>
+</div>
+
+<!-- ══ TICKER ══ -->
+<div class="ticker">
+	<span class="tk-label">▲ LIVE</span>
+	<div class="tk-track">
+		<div class="tk-inner" id="ticker">
+			<span class="tk-item"><b class="tk-tag css">CSS</b> Container queries hit baseline support across all major browsers</span>
+			<span class="tk-sep">◆</span>
+			<span class="tk-item"><b class="tk-tag js">JS</b> ECMAScript 2026 adds native Set methods to Array prototype</span>
+			<span class="tk-sep">◆</span>
+			<span class="tk-item"><b class="tk-tag tool">TOOL</b> Vite 7.0 released with 40% faster cold start</span>
+			<span class="tk-sep">◆</span>
+			<span class="tk-item"><b class="tk-tag css">CSS</b> Anchor positioning now stable in Safari 18.4</span>
+			<span class="tk-sep">◆</span>
+			<span class="tk-item"><b class="tk-tag react">REACT</b> React 20 release candidate available for testing</span>
+			<span class="tk-sep">◆</span>
+			<span class="tk-item"><b class="tk-tag perf">PERF</b> INP becomes Core Web Vital metric officially</span>
+			<span class="tk-sep">◆</span>
+		</div>
+	</div>
+</div>
+
+<!-- ══ MAIN ══ -->
+<main class="main">
+
+	<!-- ─── LEFT SIDEBAR ─── -->
+	<aside class="side side-l">
+		<div class="panel">
+			<div class="panel-h">
+				<span>FILTER</span>
+				<span class="pn-num">[F]</span>
+			</div>
+			<ul class="filter-list" id="filters">
+				<li class="active" data-filter="all"><span class="ck">▸</span> ALL <em>12</em></li>
+				<li data-filter="css"><span class="ck">▸</span> CSS <em>4</em></li>
+				<li data-filter="js"><span class="ck">▸</span> JAVASCRIPT <em>3</em></li>
+				<li data-filter="react"><span class="ck">▸</span> REACT <em>2</em></li>
+				<li data-filter="tool"><span class="ck">▸</span> TOOLING <em>2</em></li>
+				<li data-filter="perf"><span class="ck">▸</span> PERF <em>1</em></li>
+			</ul>
+		</div>
+
+		<div class="panel">
+			<div class="panel-h">
+				<span>SORT</span>
+				<span class="pn-num">[S]</span>
+			</div>
+			<ul class="filter-list" id="sorts">
+				<li class="active" data-sort="date"><span class="ck">▸</span> NEWEST</li>
+				<li data-sort="rating"><span class="ck">▸</span> HIGHEST RATED</li>
+				<li data-sort="reads"><span class="ck">▸</span> MOST READ</li>
+				<li data-sort="time"><span class="ck">▸</span> QUICK READS</li>
+			</ul>
+		</div>
+
+		<div class="panel">
+			<div class="panel-h">
+				<span>SHORTCUTS</span>
+				<span class="pn-num">[?]</span>
+			</div>
+			<ul class="kb-list">
+				<li><kbd>J</kbd><kbd>K</kbd> Navigate</li>
+				<li><kbd>O</kbd> Open article</li>
+				<li><kbd>M</kbd> Mark read</li>
+				<li><kbd>/</kbd> Search</li>
+				<li><kbd>R</kbd> Refresh</li>
+			</ul>
+		</div>
+	</aside>
+
+	<!-- ─── FEED ─── -->
+	<section class="feed" id="feed">
+
+		<article class="card" data-cat="css" data-rating="4.8" data-reads="12400" data-time="6">
+			<header class="card-h">
+				<span class="idx">№ 01</span>
+				<span class="src src-css">CSS-TRICKS</span>
+				<time datetime="2026-05-13T14:22">2 HOURS AGO</time>
+				<span class="badge badge-new">NEW</span>
+			</header>
+			<h2>A Complete Guide to Container Queries in 2026</h2>
+			<p>Container queries have officially hit baseline support across every major browser. This deep dive covers everything from basic syntax to advanced techniques like style queries, container units, and the new <code>@container</code> scoped naming patterns that have emerged from the community.</p>
+			<footer class="card-f">
+				<span class="meta"><span class="ico">★</span> 4.8</span>
+				<span class="meta"><span class="ico">◎</span> 12.4K</span>
+				<span class="meta"><span class="ico">⌖</span> 6 MIN</span>
+				<span class="tags">
+					<span class="tag">@container</span>
+					<span class="tag">responsive</span>
+					<span class="tag">layout</span>
+				</span>
+			</footer>
+		</article>
+
+		<article class="card" data-cat="css" data-rating="4.9" data-reads="18900" data-time="4">
+			<header class="card-h">
+				<span class="idx">№ 02</span>
+				<span class="src src-css">MDN WEB DOCS</span>
+				<time datetime="2026-05-13T11:08">5 HOURS AGO</time>
+			</header>
+			<h2>The :has() Selector Is Now Baseline — Here's What That Unlocks</h2>
+			<p>The relational pseudo-class <code>:has()</code> has been called "the parent selector we've always wanted." Now that it's officially baseline, MDN walks through the patterns it enables: form validation styling, smart card layouts, and conditional sibling targeting that previously required JavaScript.</p>
+			<footer class="card-f">
+				<span class="meta"><span class="ico">★</span> 4.9</span>
+				<span class="meta"><span class="ico">◎</span> 18.9K</span>
+				<span class="meta"><span class="ico">⌖</span> 4 MIN</span>
+				<span class="tags">
+					<span class="tag">selectors</span>
+					<span class="tag">pseudo-class</span>
+				</span>
+			</footer>
+		</article>
+
+		<article class="card" data-cat="js" data-rating="4.6" data-reads="9800" data-time="8">
+			<header class="card-h">
+				<span class="idx">№ 03</span>
+				<span class="src src-js">WEB.DEV</span>
+				<time datetime="2026-05-13T09:34">7 HOURS AGO</time>
+			</header>
+			<h2>Building Smooth Page Transitions with the View Transitions API</h2>
+			<p>The View Transitions API is no longer experimental — it shipped with Chrome 124 and Safari 18. This Chrome team walkthrough builds a complete photo gallery app with morphing transitions, covering both same-document and cross-document patterns, plus performance considerations for production.</p>
+			<footer class="card-f">
+				<span class="meta"><span class="ico">★</span> 4.6</span>
+				<span class="meta"><span class="ico">◎</span> 9.8K</span>
+				<span class="meta"><span class="ico">⌖</span> 8 MIN</span>
+				<span class="tags">
+					<span class="tag">api</span>
+					<span class="tag">animation</span>
+				</span>
+			</footer>
+		</article>
+
+		<article class="card" data-cat="perf" data-rating="4.7" data-reads="14200" data-time="12">
+			<header class="card-h">
+				<span class="idx">№ 04</span>
+				<span class="src src-perf">SMASHING MAG</span>
+				<time datetime="2026-05-13T07:18">9 HOURS AGO</time>
+			</header>
+			<h2>Your Bundle Is Still Too Big — And Here's Why</h2>
+			<p>Despite all the modern tooling, the median JavaScript payload has grown 12% year-over-year. Addy Osmani breaks down the hidden cost of "free" features: polyfills you don't need, duplicate dependencies, framework runtime overhead, and the seductive trap of adding "just one more" utility library.</p>
+			<footer class="card-f">
+				<span class="meta"><span class="ico">★</span> 4.7</span>
+				<span class="meta"><span class="ico">◎</span> 14.2K</span>
+				<span class="meta"><span class="ico">⌖</span> 12 MIN</span>
+				<span class="tags">
+					<span class="tag">performance</span>
+					<span class="tag">bundling</span>
+					<span class="tag">webvitals</span>
+				</span>
+			</footer>
+		</article>
+
+		<article class="card" data-cat="css" data-rating="4.9" data-reads="22100" data-time="10">
+			<header class="card-h">
+				<span class="idx">№ 05</span>
+				<span class="src src-css">JOSHCOMEAU.COM</span>
+				<time datetime="2026-05-12T22:05">17 HOURS AGO</time>
+				<span class="badge badge-hot">HOT</span>
+			</header>
+			<h2>An Interactive Guide to CSS Grid Subgrid</h2>
+			<p>Josh's signature interactive style returns to demystify subgrid. With editable demos, side-by-side comparisons of grid vs subgrid behavior, and real-world layout patterns, this is the comprehensive resource the spec needed. Includes a downloadable cheatsheet.</p>
+			<footer class="card-f">
+				<span class="meta"><span class="ico">★</span> 4.9</span>
+				<span class="meta"><span class="ico">◎</span> 22.1K</span>
+				<span class="meta"><span class="ico">⌖</span> 10 MIN</span>
+				<span class="tags">
+					<span class="tag">grid</span>
+					<span class="tag">subgrid</span>
+					<span class="tag">interactive</span>
+				</span>
+			</footer>
+		</article>
+
+		<article class="card" data-cat="react" data-rating="4.5" data-reads="8400" data-time="7">
+			<header class="card-h">
+				<span class="idx">№ 06</span>
+				<span class="src src-react">A LIST APART</span>
+				<time datetime="2026-05-12T18:42">21 HOURS AGO</time>
+			</header>
+			<h2>The Return of Server-Rendered HTML</h2>
+			<p>After a decade of client-side rendering dominance, we're watching the pendulum swing back. From React Server Components to Astro's island architecture to good old PHP, the web is rediscovering that sending HTML over the wire is often the right answer. A measured look at why.</p>
+			<footer class="card-f">
+				<span class="meta"><span class="ico">★</span> 4.5</span>
+				<span class="meta"><span class="ico">◎</span> 8.4K</span>
+				<span class="meta"><span class="ico">⌖</span> 7 MIN</span>
+				<span class="tags">
+					<span class="tag">ssr</span>
+					<span class="tag">architecture</span>
+				</span>
+			</footer>
+		</article>
+
+		<article class="card" data-cat="tool" data-rating="4.7" data-reads="6700" data-time="5">
+			<header class="card-h">
+				<span class="idx">№ 07</span>
+				<span class="src src-tool">CODEPEN BLOG</span>
+				<time datetime="2026-05-12T15:11">1 DAY AGO</time>
+			</header>
+			<h2>Spotlight: Generative SVG Patterns You Can Actually Use</h2>
+			<p>This month's featured collection showcases nine creators who are pushing SVG into wild territory — from CSS-only fractal generators to interactive Lissajous wave players. Each pen includes a "remix" link so you can fork and customize the patterns for your own projects.</p>
+			<footer class="card-f">
+				<span class="meta"><span class="ico">★</span> 4.7</span>
+				<span class="meta"><span class="ico">◎</span> 6.7K</span>
+				<span class="meta"><span class="ico">⌖</span> 5 MIN</span>
+				<span class="tags">
+					<span class="tag">svg</span>
+					<span class="tag">generative</span>
+					<span class="tag">codepen</span>
+				</span>
+			</footer>
+		</article>
+
+		<article class="card" data-cat="js" data-rating="4.4" data-reads="5200" data-time="3">
+			<header class="card-h">
+				<span class="idx">№ 08</span>
+				<span class="src src-js">FRONTEND FOCUS</span>
+				<time datetime="2026-05-12T12:00">1 DAY AGO</time>
+			</header>
+			<h2>Weekly Roundup #648 — TC39 Notes, Wasm GC, and More</h2>
+			<p>This week: notes from the latest TC39 meeting (decorators are advancing, Records & Tuples are not), the WebAssembly GC proposal hits Stage 4, a deep dive on the new Iterator Helpers, and a curated list of seven open-source releases worth your attention.</p>
+			<footer class="card-f">
+				<span class="meta"><span class="ico">★</span> 4.4</span>
+				<span class="meta"><span class="ico">◎</span> 5.2K</span>
+				<span class="meta"><span class="ico">⌖</span> 3 MIN</span>
+				<span class="tags">
+					<span class="tag">newsletter</span>
+					<span class="tag">tc39</span>
+				</span>
+			</footer>
+		</article>
+
+		<article class="card" data-cat="css" data-rating="4.8" data-reads="11500" data-time="6">
+			<header class="card-h">
+				<span class="idx">№ 09</span>
+				<span class="src src-css">STEFAN JUDIS</span>
+				<time datetime="2026-05-11T20:30">2 DAYS AGO</time>
+			</header>
+			<h2>Hidden CSS Features You'll Actually Use Tomorrow</h2>
+			<p>Forget the headlines — Stefan digs up the quieter additions: <code>scrollbar-gutter</code>, <code>field-sizing</code>, the new <code>:host-context()</code>, and a use case for <code>text-wrap: pretty</code> that finally makes sense. Each tip comes with a CodePen demo you can fork.</p>
+			<footer class="card-f">
+				<span class="meta"><span class="ico">★</span> 4.8</span>
+				<span class="meta"><span class="ico">◎</span> 11.5K</span>
+				<span class="meta"><span class="ico">⌖</span> 6 MIN</span>
+				<span class="tags">
+					<span class="tag">css</span>
+					<span class="tag">tips</span>
+				</span>
+			</footer>
+		</article>
+
+		<article class="card" data-cat="tool" data-rating="4.6" data-reads="7800" data-time="9">
+			<header class="card-h">
+				<span class="idx">№ 10</span>
+				<span class="src src-tool">PICCALILLI</span>
+				<time datetime="2026-05-11T16:14">2 DAYS AGO</time>
+			</header>
+			<h2>Practical Custom Properties for Design Systems</h2>
+			<p>Andy Bell makes the case for fewer tokens, smarter naming, and using custom properties as a system rather than as variables. Includes a working example design system built from just 24 root tokens and the composition patterns that scale them to entire products.</p>
+			<footer class="card-f">
+				<span class="meta"><span class="ico">★</span> 4.6</span>
+				<span class="meta"><span class="ico">◎</span> 7.8K</span>
+				<span class="meta"><span class="ico">⌖</span> 9 MIN</span>
+				<span class="tags">
+					<span class="tag">design-systems</span>
+					<span class="tag">custom-properties</span>
+				</span>
+			</footer>
+		</article>
+
+		<article class="card" data-cat="css" data-rating="4.5" data-reads="4900" data-time="4">
+			<header class="card-h">
+				<span class="idx">№ 11</span>
+				<span class="src src-css">BRAM.US</span>
+				<time datetime="2026-05-11T10:00">3 DAYS AGO</time>
+			</header>
+			<h2>What's New in CSS — May 2026 Edition</h2>
+			<p>Bramus' monthly roundup of CSS news, specs, and browser updates. This month: anchor positioning hits Safari, the <code>@starting-style</code> rule lands universally, and a heads-up about the deprecation of <code>::-webkit-scrollbar</code> in favor of the new scrollbar properties.</p>
+			<footer class="card-f">
+				<span class="meta"><span class="ico">★</span> 4.5</span>
+				<span class="meta"><span class="ico">◎</span> 4.9K</span>
+				<span class="meta"><span class="ico">⌖</span> 4 MIN</span>
+				<span class="tags">
+					<span class="tag">news</span>
+					<span class="tag">browsers</span>
+				</span>
+			</footer>
+		</article>
+
+		<article class="card" data-cat="react" data-rating="4.3" data-reads="16800" data-time="11">
+			<header class="card-h">
+				<span class="idx">№ 12</span>
+				<span class="src src-react">KENT C. DODDS</span>
+				<time datetime="2026-05-10T19:25">4 DAYS AGO</time>
+			</header>
+			<h2>Why I Stopped Reaching for useEffect First</h2>
+			<p>An honest retrospective on Kent's evolved relationship with React's most misused hook. Walks through five common useEffect patterns and the better primitives that have emerged: derived state, event handlers, server components, and the new <code>use()</code> hook for async data.</p>
+			<footer class="card-f">
+				<span class="meta"><span class="ico">★</span> 4.3</span>
+				<span class="meta"><span class="ico">◎</span> 16.8K</span>
+				<span class="meta"><span class="ico">⌖</span> 11 MIN</span>
+				<span class="tags">
+					<span class="tag">react</span>
+					<span class="tag">hooks</span>
+					<span class="tag">patterns</span>
+				</span>
+			</footer>
+		</article>
+
+	</section>
+
+	<!-- ─── RIGHT SIDEBAR ─── -->
+	<aside class="side side-r">
+
+		<div class="panel">
+			<div class="panel-h">
+				<span>ACTIVITY · 24H</span>
+				<span class="live-dot"></span>
+			</div>
+			<div class="spark" id="spark">
+				<svg viewBox="0 0 200 60" preserveAspectRatio="none">
+					<polyline id="spark-line" fill="none" stroke="currentColor" stroke-width="1.5" points="" />
+					<polyline id="spark-fill" fill="currentColor" fill-opacity="0.12" stroke="none" points="" />
+				</svg>
+				<div class="spark-meta">
+					<span>PEAK <b>2.4K/hr</b></span>
+					<span>NOW <b id="live-readers">847</b></span>
+				</div>
+			</div>
+		</div>
+
+		<div class="panel">
+			<div class="panel-h">
+				<span>TRENDING</span>
+				<span class="pn-num">[T]</span>
+			</div>
+			<ol class="trend-list">
+				<li><span class="rank">01</span> #container-queries <em>+412%</em></li>
+				<li><span class="rank">02</span> #has-selector <em>+289%</em></li>
+				<li><span class="rank">03</span> #subgrid <em>+186%</em></li>
+				<li><span class="rank">04</span> #view-transitions <em>+147%</em></li>
+				<li><span class="rank">05</span> #anchor-positioning <em>+93%</em></li>
+			</ol>
+		</div>
+
+		<div class="panel">
+			<div class="panel-h">
+				<span>SOURCES</span>
+				<span class="pn-num">[12]</span>
+			</div>
+			<ul class="src-list">
+				<li><span class="bar"><span style="width:80%"></span></span><span>CSS-Tricks</span><em>4</em></li>
+				<li><span class="bar"><span style="width:60%"></span></span><span>MDN</span><em>3</em></li>
+				<li><span class="bar"><span style="width:40%"></span></span><span>web.dev</span><em>2</em></li>
+				<li><span class="bar"><span style="width:30%"></span></span><span>Smashing</span><em>1</em></li>
+				<li><span class="bar"><span style="width:30%"></span></span><span>Piccalilli</span><em>1</em></li>
+				<li><span class="bar"><span style="width:20%"></span></span><span>+ 7 more</span><em></em></li>
+			</ul>
+		</div>
+
+		<div class="panel ascii">
+			<pre>
+   _____ _____ ____  __  __
+  |_   _| ____|  _ \|  \/  |
+    | | |  _| | |_) | |\/| |
+    | | | |___|  _ <| |  | |
+    |_| |_____|_| \_\_|  |_|
+
+  [ NEWS · 2026 · LIVE ]
+      </pre>
+		</div>
+	</aside>
+
+</main>
+
+<!-- ══ COMMAND BAR ══ -->
+<div class="cmdbar">
+	<span class="prompt">$</span>
+	<input type="text" id="cmd" placeholder="type a command, search, or press / to focus" spellcheck="false" autocomplete="off">
+	<span class="hint"><kbd>⌘</kbd> <kbd>K</kbd> for palette</span>
+</div>
+
+<!-- ══ SCAN LINES ══ -->
+<div class="scanlines"></div>
+    <script>
+		/* ── LIVE CLOCK ── */
+const clock = document.getElementById("clock");
+function tick() {
+	const d = new Date();
+	clock.textContent = [d.getHours(), d.getMinutes(), d.getSeconds()]
+		.map((n) => String(n).padStart(2, "0"))
+		.join(":");
+}
+tick();
+setInterval(tick, 1000);
+
+/* ── LIVE SYSTEM STATS ── */
+const cpuEl = document.getElementById("cpu");
+const memEl = document.getElementById("mem");
+const liveReaders = document.getElementById("live-readers");
+
+setInterval(() => {
+	cpuEl.textContent =
+		String(Math.floor(2 + Math.random() * 15)).padStart(2, "0") + "%";
+	memEl.textContent =
+		String(Math.floor(55 + Math.random() * 15)).padStart(2, "0") + "%";
+	if (liveReaders) {
+		const n = 700 + Math.floor(Math.random() * 400);
+		liveReaders.textContent = n.toLocaleString();
+	}
+}, 2400);
+
+/* ── SPARKLINE ── */
+const sparkLine = document.getElementById("spark-line");
+const sparkFill = document.getElementById("spark-fill");
+function drawSpark() {
+	const pts = [];
+	for (let x = 0; x <= 200; x += 8) {
+		const y =
+			30 +
+			Math.sin(x * 0.04 + Date.now() * 0.0008) * 14 +
+			(Math.random() - 0.5) * 6;
+		pts.push(`${x},${y.toFixed(1)}`);
+	}
+	sparkLine.setAttribute("points", pts.join(" "));
+	sparkFill.setAttribute("points", `0,60 ${pts.join(" ")} 200,60`);
+}
+drawSpark();
+setInterval(drawSpark, 1800);
+
+/* ── FILTERS ── */
+const filterEls = document.querySelectorAll("#filters li");
+const cards = document.querySelectorAll(".card");
+
+filterEls.forEach((el) => {
+	el.addEventListener("click", () => {
+		filterEls.forEach((e) => e.classList.remove("active"));
+		el.classList.add("active");
+		const f = el.dataset.filter;
+		cards.forEach((c) => {
+			c.classList.toggle("hidden", f !== "all" && c.dataset.cat !== f);
+		});
+		focusedIdx = 0;
+		updateFocus();
+	});
+});
+
+/* ── SORT ── */
+const sortEls = document.querySelectorAll("#sorts li");
+const feed = document.getElementById("feed");
+
+sortEls.forEach((el) => {
+	el.addEventListener("click", () => {
+		sortEls.forEach((e) => e.classList.remove("active"));
+		el.classList.add("active");
+		const s = el.dataset.sort;
+		const arr = Array.from(cards);
+		arr.sort((a, b) => {
+			if (s === "date") return arr.indexOf(a) - arr.indexOf(b);
+			if (s === "rating")
+				return parseFloat(b.dataset.rating) - parseFloat(a.dataset.rating);
+			if (s === "reads")
+				return parseInt(b.dataset.reads) - parseInt(a.dataset.reads);
+			if (s === "time") return parseInt(a.dataset.time) - parseInt(b.dataset.time);
+		});
+		arr.forEach((c) => feed.appendChild(c));
+	});
+});
+
+/* ── KEYBOARD NAVIGATION ── */
+let focusedIdx = 0;
+const cmd = document.getElementById("cmd");
+
+function visibleCards() {
+	return Array.from(cards).filter((c) => !c.classList.contains("hidden"));
+}
+
+function updateFocus() {
+	const vis = visibleCards();
+	cards.forEach((c) => c.classList.remove("focused"));
+	if (vis[focusedIdx]) {
+		vis[focusedIdx].classList.add("focused");
+		vis[focusedIdx].scrollIntoView({ behavior: "smooth", block: "nearest" });
+	}
+}
+
+window.addEventListener("keydown", (e) => {
+	if (document.activeElement === cmd) {
+		if (e.key === "Escape") {
+			cmd.blur();
+			cmd.value = "";
+		}
+		return;
+	}
+
+	const vis = visibleCards();
+
+	if (e.key === "j" || e.key === "ArrowDown") {
+		e.preventDefault();
+		focusedIdx = Math.min(vis.length - 1, focusedIdx + 1);
+		updateFocus();
+	}
+	if (e.key === "k" || e.key === "ArrowUp") {
+		e.preventDefault();
+		focusedIdx = Math.max(0, focusedIdx - 1);
+		updateFocus();
+	}
+	if (e.key === "m") {
+		if (vis[focusedIdx]) vis[focusedIdx].classList.toggle("read");
+	}
+	if (e.key === "o" || e.key === "Enter") {
+		if (vis[focusedIdx]) {
+			vis[focusedIdx].style.transform = "scale(0.98)";
+			setTimeout(() => (vis[focusedIdx].style.transform = ""), 150);
+		}
+	}
+	if (e.key === "/") {
+		e.preventDefault();
+		cmd.focus();
+	}
+	if (e.key === "r") {
+		cards.forEach((c) => c.classList.remove("read"));
+	}
+});
+
+updateFocus();
+
+/* ── CARD CLICK FOCUS ── */
+cards.forEach((c, i) => {
+	c.addEventListener("click", () => {
+		const vis = visibleCards();
+		focusedIdx = vis.indexOf(c);
+		updateFocus();
+	});
+});
+
+/* ── COMMAND PROMPT ── */
+cmd.addEventListener("keydown", (e) => {
+	if (e.key === "Enter") {
+		const v = cmd.value.toLowerCase().trim();
+		if (v.startsWith("filter ") || v.startsWith("f ")) {
+			const tag = v.split(" ")[1];
+			const btn = Array.from(filterEls).find((el) => el.dataset.filter === tag);
+			if (btn) btn.click();
+		} else if (v === "mark all read") {
+			cards.forEach((c) => c.classList.add("read"));
+		} else if (v === "unread" || v === "reset") {
+			cards.forEach((c) => c.classList.remove("read"));
+		} else if (v) {
+			// search by keyword
+			cards.forEach((c) => {
+				const t = (
+					c.querySelector("h2").textContent +
+					" " +
+					c.querySelector("p").textContent
+				).toLowerCase();
+				c.classList.toggle("hidden", !t.includes(v));
+			});
+		}
+		cmd.value = "";
+	}
+});
+
+/* ── CMD+K SHORTCUT ── */
+window.addEventListener("keydown", (e) => {
+	if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+		e.preventDefault();
+		cmd.focus();
+	}
+});
+	</script>
+
+  </body>
+  
+</html>
