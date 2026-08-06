@@ -19,8 +19,4 @@ export const connectDB = async (): Promise<boolean> => {
   }
 };
 
-export const disconnectDB = async (): Promise<void> => {
-  console.log('Database disconnected');
-};
-
 export default supabase;
