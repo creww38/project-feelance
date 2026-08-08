@@ -546,7 +546,7 @@
     window._copy = function(btn, id) {
         var ep = endpoints.find(function(e) { return e.id === id; });
         if (!ep) return;
-        var curl = 'curl -X ' + ep.method + ' https://backend-creww38s-projects.vercel.app/' + ep.path;
+        var curl = 'curl -X ' + ep.method + ' https://backend-creww38s-projects.vercel.app' + ep.path;
         if (ep.auth) curl += ' -H "Authorization: Bearer <TOKEN>"';
         if (ep.body) curl += ' -H "Content-Type: application/json" -d \'' + ep.body.replace(/\n/g,' ').replace(/\s+/g,' ').trim() + '\'';
         navigator.clipboard.writeText(curl).then(function() {
