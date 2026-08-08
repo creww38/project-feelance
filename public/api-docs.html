@@ -263,7 +263,7 @@
         <span class="ver">v1.0.0</span>
     </div>
     <div class="tb-center">
-        <span class="status"><span class="stat-dot"></span> BASE: /api</span>
+        <span class="status"><span class="stat-dot"></span> BASE: https://backend-creww38s-projects.vercel.app/docs</span>
     </div>
     <div class="tb-right">
         <span class="meta-item">ENDPOINTS <b id="ep-count">28</b></span>
@@ -361,7 +361,7 @@
     // ============================================
     var endpoints = [
         { id:'auth-login', group:'Authentication', method:'POST', path:'/auth/login', summary:'Login user', auth:false,
-          body:'{\n  "email": "admin@smansa.sch.id",\n  "password": "Admin123!"\n}',
+          body:'{\n  "email": "makyatashi@gmail.com",\n  "password": "*******"\n}',
           params:[],
           response200:'{\n  "status": "success",\n  "message": "Login berhasil",\n  "data": {\n    "user": { "id":"uuid", "email":"...", "userRoles":[...] },\n    "accessToken": "eyJ..."\n  }\n}',
           errors:'401 | Email atau password salah\n401 | Akun dinonaktifkan\n400 | Validasi gagal' },
@@ -513,7 +513,7 @@
             h += '<div class="ep-label">Error Codes</div><div class="code-block" style="color:var(--red)">' + ep.errors + '</div>';
         }
 
-        var curl = 'curl -X ' + ep.method + ' http://localhost:5000/api' + ep.path;
+        var curl = 'curl -X ' + ep.method + ' https://backend-creww38s-projects.vercel.app/' + ep.path;
         if (ep.auth) curl += ' -H "Authorization: Bearer <TOKEN>"';
         if (ep.body) curl += ' -H "Content-Type: application/json" -d \'' + ep.body.replace(/\n/g,' ').replace(/\s+/g,' ').trim() + '\'';
 
@@ -546,7 +546,7 @@
     window._copy = function(btn, id) {
         var ep = endpoints.find(function(e) { return e.id === id; });
         if (!ep) return;
-        var curl = 'curl -X ' + ep.method + ' http://localhost:5000/api' + ep.path;
+        var curl = 'curl -X ' + ep.method + ' https://backend-creww38s-projects.vercel.app/' + ep.path;
         if (ep.auth) curl += ' -H "Authorization: Bearer <TOKEN>"';
         if (ep.body) curl += ' -H "Content-Type: application/json" -d \'' + ep.body.replace(/\n/g,' ').replace(/\s+/g,' ').trim() + '\'';
         navigator.clipboard.writeText(curl).then(function() {
