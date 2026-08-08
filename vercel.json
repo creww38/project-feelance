@@ -1,9 +1,0 @@
-{
-  "version": 2,
-  "name": "sistech-api",
-  "rewrites": [
-    { "source": "/health", "destination": "/api/index" },
-    { "source": "/api/(.*)", "destination": "/api/index" },
-    { "source": "/(.*)", "destination": "/api/index" }
-  ]
-}
