@@ -1,35 +1,27 @@
 {
   "version": 2,
   "name": "sistech-api",
-  "builds": [
-    {
-      "src": "api/index.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "public/**",
-      "use": "@vercel/static"
+  "functions": {
+    "api/index.js": {
+      "runtime": "@vercel/node@3"
     }
-  ],
+  },
   "routes": [
     {
       "src": "/docs",
       "dest": "/public/api-docs.html"
     },
     {
-      "src": "/api/(.*)",
+      "src": "/health",
       "dest": "/api/index.js"
     },
     {
-      "src": "/health",
+      "src": "/api/(.*)",
       "dest": "/api/index.js"
     },
     {
       "src": "/(.*)",
       "dest": "/api/index.js"
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  ]
 }
