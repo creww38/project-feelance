@@ -263,7 +263,7 @@
         <span class="ver">v1.0.0</span>
     </div>
     <div class="tb-center">
-        <span class="status"><span class="stat-dot"></span> BASE: https://backend-creww38s-projects.vercel.app/docs</span>
+        <span class="status"><span class="stat-dot"></span> BASE: https://backend-kappa-eight-33.vercel.app/docs</span>
     </div>
     <div class="tb-right">
         <span class="meta-item">ENDPOINTS <b id="ep-count">28</b></span>
@@ -513,7 +513,7 @@
             h += '<div class="ep-label">Error Codes</div><div class="code-block" style="color:var(--red)">' + ep.errors + '</div>';
         }
 
-        var curl = 'curl -X ' + ep.method + ' https://backend-creww38s-projects.vercel.app/' + ep.path;
+        var curl = 'curl -X ' + ep.method + 'https://backend-kappa-eight-33.vercel.app' + ep.path;
         if (ep.auth) curl += ' -H "Authorization: Bearer <TOKEN>"';
         if (ep.body) curl += ' -H "Content-Type: application/json" -d \'' + ep.body.replace(/\n/g,' ').replace(/\s+/g,' ').trim() + '\'';
 
@@ -546,7 +546,7 @@
     window._copy = function(btn, id) {
         var ep = endpoints.find(function(e) { return e.id === id; });
         if (!ep) return;
-        var curl = 'curl -X ' + ep.method + ' https://backend-creww38s-projects.vercel.app' + ep.path;
+        var curl = 'curl -X ' + ep.method + 'https://backend-kappa-eight-33.vercel.app/' + ep.path;
         if (ep.auth) curl += ' -H "Authorization: Bearer <TOKEN>"';
         if (ep.body) curl += ' -H "Content-Type: application/json" -d \'' + ep.body.replace(/\n/g,' ').replace(/\s+/g,' ').trim() + '\'';
         navigator.clipboard.writeText(curl).then(function() {
